@@ -63,14 +63,19 @@
           </div>
         </form>
     </div>
-
-    <h1>Hello, terminal</h1>
-    <div id="terminal"></div>
+    <div class="container">
+      <h1>Hello, terminal</h1>
+      <div id="terminal"></div>
+    </div>
+    
 
 
 </body>
 <script>
-    var term = new Terminal();
+    var term = new Terminal({
+      cursorStyle:'underline',  //光标样式
+      cursorBlink:true,  //光标闪烁
+    });
     term.open(document.getElementById('terminal'));
     term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ')
 </script>
