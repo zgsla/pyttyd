@@ -17,7 +17,11 @@ ssh_client.connect('127.0.0.1', 2222, 'root', 'root')
 async def read_chan(websocket, chan):
     while True:
         print('chan status: ', chan.closed)
-        data = chan.recv(1024)
+        try:
+            data = chan.recv(1024)
+        except Exception as e:
+            print(e)
+            break
         if data:
             await websocket.send(data.decode('utf8'))
         await asyncio.sleep(0.1)
