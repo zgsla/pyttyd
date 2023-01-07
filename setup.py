@@ -2,5 +2,5 @@
 from setuptools import setup
 setup(
     name='webdevtool',
-    install_requires=['flask', 'paramiko', 'websockets']
+    install_requires=['fastapi', 'paramiko', 'websockets']
 )

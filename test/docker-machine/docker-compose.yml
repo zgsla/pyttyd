@@ -5,3 +5,4 @@ services:
     image: test-machine:1.0
     ports:
       - "2222:22"
+    restart: always
