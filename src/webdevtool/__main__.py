@@ -1,5 +1,6 @@
 import os
 import sys
+import uvicorn
 import asyncio
 
 from .webapp import app
@@ -7,7 +8,7 @@ from .websocket import main as wmain
 
 
 def debug():
-    app.run(debug=True)
+    uvicorn.run('webdevtool.webapp:app', reload=True)
 
 
 def _websocket():

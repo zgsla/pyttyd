@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="css/xterm.css">
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/xterm.js"></script>
-    <script src="js/xterm-addon-fit.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/bootstrap-theme.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/xterm.css') }}">
+    <script src="{{ url_for('static', path='/js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/xterm.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/xterm-addon-fit.js') }}"></script>
 </head>
 <body>
     <div class="container">
       <h1>Terminal</h1>
       <div id="terminal"></div>
     </div>
-    
 
 
 </body>
@@ -31,7 +30,7 @@
     term.focus();
     term.open(document.getElementById('terminal'));
 
-    var ws = new WebSocket("ws://localhost:8001"); 
+    var ws = new WebSocket("ws://127.0.0.1:8000/ws"); 
     //申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
     ws.onopen = function(){
       //当WebSocket创建成功时，触发onopen事件
@@ -39,7 +38,7 @@
     }
     ws.onmessage = function(e){
       //当客户端收到服务端发来的消息时，触发onmessage事件，参数e.data包含server传递过来的数据
-      console.log(e.data);
+      console.log(e);
       term.write(e.data);
       
     }

@@ -18,13 +18,26 @@ async def read_chan(websocket, chan):
     while True:
         print('chan status: ', chan.closed)
         try:
-            data = chan.recv(1024)
+            data = await asyncio.to_thread(chan.recv, 1024)
         except Exception as e:
             print(e)
             break
         if data:
+            print(data)
             await websocket.send(data.decode('utf8'))
-        await asyncio.sleep(0.1)
+
+
+async def read_sock(websocket, chan):
+    print("read sock")
+    async for message in websocket:
+        # Parse a "play" event from the UI.
+        event = json.loads(message)
+        print('event: ', event)
+        data = event.get('input')
+        if data:
+            await asyncio.to_thread(chan.send, data)
+    
+        
 
 async def handler(websocket):
     """
@@ -33,17 +46,17 @@ async def handler(websocket):
     """
     print('open')
     chan = ssh_client.invoke_shell(term='xterm')
-    chan.setblocking(0)
-    await read_chan(websocket, chan)
+    # chan.setblocking(1)
+    # await read_chan(websocket, chan)
     print('opened')
-
-    async for message in websocket:
-        # Parse a "play" event from the UI.
-        event = json.loads(message)
-        print(event)
-        data = event.get('input')
-        if data:
-            chan.send(data)
+    consumer_task = asyncio.create_task(read_chan(websocket, chan))
+    producer_task = asyncio.create_task(read_sock(websocket, chan))
+    done, pending = await asyncio.wait(
+        [consumer_task, producer_task],
+        return_when=asyncio.FIRST_COMPLETED,
+    )
+    for task in pending:
+        task.cancel()
     print("closed")
 
 
