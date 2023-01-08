@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.endpoints import WebSocketEndpoint
-
+from starlette.websockets import WebSocketDisconnect
 
 import paramiko
 import asyncio
@@ -11,8 +11,8 @@ import json
 
 
 ssh_client = paramiko.SSHClient()
-ssh_client.load_system_host_keys()
-
+# ssh_client.load_system_host_keys()
+ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh_client.connect('127.0.0.1', 2222, 'root', 'root')
 
 app = FastAPI()
@@ -22,43 +22,8 @@ app.mount("/static", StaticFiles(directory="src/webdevtool/static"), name="stati
 templates = Jinja2Templates(directory="src/webdevtool/template")
 
 
-class App(WebSocketEndpoint):
-    encoding = 'bytes'
-    chan = None 
-
-    async def read_chan(self, websocket):
-        while True:
-            try:
-                data = await asyncio.to_thread(self.chan.recv, 1024)
-            except Exception as e:
-                print(e)
-                break
-            if data:
-                print(data)
-                await websocket.send_bytes(data)
-
-    async def on_connect(self, websocket):
-        await websocket.accept()
-        self.chan = ssh_client.invoke_shell(term='xterm')
-        asyncio.create_task(self.read_chan(websocket))
-        
-        
-
-    async def on_receive(self, websocket, data):
-        event = json.loads(data)
-        print('event: ', event)
-        data = event.get('input')
-        if data:
-            await asyncio.to_thread(self.chan.send, data)
-        await websocket.send_bytes(b"Message: " + data)
-
-    async def on_disconnect(self, websocket, close_code):
-        pass
-
-
 async def read_chan(websocket, chan):
-    while True:
-        print('chan status: ', chan.closed)
+    while not chan.closed:
         try:
             data = await asyncio.to_thread(chan.recv, 1024)
         except Exception as e:
@@ -72,7 +37,10 @@ async def read_chan(websocket, chan):
 async def read_sock(websocket, chan):
     print("read sock")
     while True:
-        data = await websocket.receive_text()
+        try:
+            data = await websocket.receive_text()
+        except WebSocketDisconnect:
+            break
         print('recv data: ', data)
         event = json.loads(data)
         data = event.get('input')
@@ -87,10 +55,14 @@ async def read_sock(websocket, chan):
     #     if data:
     #         await asyncio.to_thread(chan.send, data)
 
-
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
+async def ssh(request: Request):
     return templates.TemplateResponse("index.html", context={'request': request})
+
+
+@app.get("/ssh", response_class=HTMLResponse)
+async def ssh(request: Request):
+    return templates.TemplateResponse("terminal.html", context={'request': request})
 
 
 @app.websocket("/ws")
@@ -110,6 +82,7 @@ async def websocket_endpoint(websocket: WebSocket):
     for task in pending:
         task.cancel()
     print("closed")
+    chan.close()
     # while True:
     #     data = await websocket.receive_text()
     #     await websocket.send_text(f"Message text was: {data}")
