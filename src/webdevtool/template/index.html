@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Fixed Top Navbar Example for Bootstrap</title>
+    <title>WebDevTool</title>
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="{{ url_for('static', path='/css/bootstrap.min.css') }}">
@@ -47,7 +47,7 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
+            <li class="active"><a href="#">主页</a></li>
             <li><a href="#" id="ssh">ssh</a></li>
             <li><a href="#contact">Contact</a></li>
             <li class="dropdown">
@@ -71,7 +71,6 @@
         </div><!--/.nav-collapse -->
       </div>
     </nav>
-
     <div class="container ssh">
 
       <!-- Main component for a primary marketing message or call to action -->
@@ -81,37 +80,50 @@
           <li class="list-group-item">数据库</li>
           <li class="list-group-item disabled">xx </li>
           <li class="list-group-item">yy</li>
-          <li class="list-group-item disable">zz</li>
+          <li class="list-group-item disabled">zz</li>
         </ul>
         
       </div>
       <div class="col-md-10">
         <form class="form-horizontal" role="form">
           <div class="form-group">
-            <label class="col-sm-2 control-label">Host</label>
+            <label class="col-sm-2 control-label">连接名</label>
             <div class="col-sm-10">
-              <input class="form-control" id="host" type="text">
+              <input class="form-control" id="name" type="text" aria-describedby="inputError2Status">
             </div>
           </div>
           <div class="form-group">
-            <label class="col-sm-2 control-label">Port</label>
+            <label class="col-sm-2 control-label">主机</label>
             <div class="col-sm-10">
-              <input class="form-control" id="port" type="text">
+              <input class="form-control" id="host" type="text" value="localhost">
             </div>
           </div>
           <div class="form-group">
-            <label class="col-sm-2 control-label">User</label>
+            <label class="col-sm-2 control-label">端口</label>
+            <div class="col-sm-10">
+              <input class="form-control" id="port" type="text" value="22">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">用户</label>
             <div class="col-sm-10">
               <input class="form-control" id="user" type="text">
             </div>
           </div>
           <div class="form-group">
-            <label for="inputPassword" class="col-sm-2 control-label">密码</label>
+            <label for="password" class="col-sm-2 control-label">密码</label>
             <div class="col-sm-10">
-              <input type="password" class="form-control" id="inputPassword">
+              <input type="password" class="form-control" id="password">
             </div>
-          
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button id="save" type="button" class="btn btn-default" data-loading-text="保存中...">保存</button>
+              <button id="connect" type="button" class="btn btn-default" data-loading-text="连接中...">连接</button>
+            </div>
+          </div>
         </form>
+        
       </div>
       
 
@@ -127,9 +139,113 @@
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{{ url_for('static', path='/js/ie10-viewport-bug-workaround.js') }}"></script>
     <script>
-      $('#ssh').on('click', function(e){
-        console.log(e)
-      })
+      $(function() {
+        
+        var saveUrl = "/ssh"
+        var connectUrl = "/ssh/connect"
+        
+        function checkInput(data) {
+          var $name = $("#name");
+          var $host = $("#host");
+          var $port = $("#port");
+          var $user = $("#user");
+          var $password = $("#password");
+          var checkStatus = 0;
+          $.each([$name, $host, $port, $user, $password],function(i,ele){
+            var key = ele.attr('id');
+            var value = ele.val();
+            if (!value){
+              console.log(key + ' invalid');
+              ele.parent().parent().addClass('has-error')
+              checkStatus = 1
+            } else {
+              data[key] = value
+            }
+          });
+          
+          return checkStatus;
+        }
+
+        function send(url, data, callback) {
+          
+          console.log(url);
+          console.log(data);
+          $.ajax({
+            url: url,
+            type: "POST",
+            data: JSON.stringify(data),
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            success: function(res) {
+              callback(res);
+            }
+          });
+          
+        }
+        
+        function parseParam (param, key) {
+          var paramStr = "";
+          if (param instanceof String || param instanceof Number || param instanceof Boolean) {
+              paramStr += "&" + key + "=" + encodeURIComponent(param);
+          } else { 
+              $.each(param, function(i) {
+                  var k = key == null ? i : key + (param instanceof Array ? "[" + i + "]" : "." + i);
+                  paramStr += '&' + parseParam(this, k);
+              });
+          }
+          return paramStr.substr(1);
+        };
+
+        $("#save").click(function(){
+          var inputData = new Object();
+          checkStatus = checkInput(inputData);
+          if (checkStatus===1){
+            return
+          }
+          var $btn = $(this).button('loading');
+          send(
+            saveUrl, 
+            inputData,
+            function(data) {
+              if (data.code == 0) 
+              {
+                $btn.button('reset');
+              }
+            }
+          );
+          
+        });
+        
+        $("#connect").click(function(){
+          var inputData = new Object();
+          checkStatus = checkInput(inputData);
+          if (checkStatus===1){
+            return
+          }
+          window.open(window.location.href + "ssh/connect?" + parseParam(inputData))
+          // var $btn = $(this).button('loading');
+          // send(connectUrl, inputData, function(data) {
+          //   if (data.code == 0) 
+          //     {
+          //       $btn.button('reset');
+          //       console.log(window.location.href)
+          //     }
+          //   // window.open(window.location.url)
+          // })
+          
+        });
+        // $(".btn").click(function(){
+        //   $(this).button('loading').delay(1000).queue(function() {
+        //     $(this).button('reset');
+        //     $(this).dequeue();
+        //   });
+        // });
+
+        // $('#ssh').on('click', function(e){
+        //   console.log(e)
+        // })
+      });
+
     </script>
   </body>
 </html>
