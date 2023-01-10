@@ -12,27 +12,25 @@
     <script src="{{ url_for('static', path='/js/xterm-addon-fit.js') }}"></script>
 </head>
 <body>
-  <div class="jumbotron">
-    <div class="container">
-      <div id="terminal"></div>
-    </div>
-  </div>
-
-
+  <div id="terminal"></div>
 </body>
 <script type="module">
   $(function() {
+    // 修改terminal的高度为body的高度
+    document.getElementById('terminal').style.height = window.innerHeight + 'px';
+    document.getElementById('terminal').style.width = window.innerWidth + 'px';
     const term = new Terminal({
       cursorStyle:'underline',  //光标样式
       cursorBlink:true,  //光标闪烁
     });
     const fitAddon = new FitAddon.FitAddon();
-    term.loadAddon(fitAddon);
-    fitAddon.fit();
+    
     term.focus();
     term.open(document.getElementById('terminal'));
+    term.loadAddon(fitAddon);
+    fitAddon.fit();
 
-    var ws = new WebSocket("ws://127.0.0.1:8000/ssh/connect" + window.location.search); 
+    var ws = new WebSocket("ws://127.0.0.1:8000/ssh/connect" + window.location.search + '&cols=' + term.cols + '&rows=' + term.rows); 
     //申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
     ws.onopen = function(){
       //当WebSocket创建成功时，触发onopen事件
@@ -56,6 +54,18 @@
       ws.send(JSON.stringify({"input": i}))
     });
 
+    window.onresize = function(e){
+      document.getElementById('terminal').style.height = window.innerHeight + 'px';
+      document.getElementById('terminal').style.width = window.innerWidth + 'px';
+      fitAddon.fit();
+    }                                                                                                                 
+    term.onResize(function (size) {
+      console.log(size)
+      ws.send(JSON.stringify({
+        'resize': [size.cols, size.rows]
+      }));
+      
+    })
     // term.onKey(function(obj){
     //   console.log(obj);
     // })

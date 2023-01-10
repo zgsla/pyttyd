@@ -1,7 +1,7 @@
 import json
 import asyncio
 import logging
-
+import urllib.parse
 import paramiko
 
 from fastapi import FastAPI, Request, WebSocket
@@ -9,9 +9,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.websockets import WebSocketDisconnect
-from sqlalchemy import insert, update, select
+from sqlalchemy import insert, update, select, delete
 
-from webdevtool.schema import CreateSSHConnectModel, UpdateSSHConnectModel
+from webdevtool.schema import CreateSSHConnectModel, UpdateSSHConnectModel, DeleteSSHConnectModel
 from webdevtool.model import engine, tb_ssh_connect
 
 app = FastAPI()
@@ -44,7 +44,6 @@ async def ssh(ssh_id: int = None):
             data = res.fetchall()
         else:
             data = res.fetchone()
-    print(data)
     return {
         "code": 0,
         "data": data
@@ -73,7 +72,7 @@ async def ssh(body: CreateSSHConnectModel):
 async def ssh(body: UpdateSSHConnectModel):
     print('update ssh', body)
     with engine.connect() as conn:
-        conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == 1).values(
+        conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == body.id).values(
             name=body.name,
             host=body.host,
             port=body.port,
@@ -85,9 +84,29 @@ async def ssh(body: UpdateSSHConnectModel):
     }
 
 
+@app.delete("/ssh")
+async def ssh(body: DeleteSSHConnectModel):
+    print('delete ssh', body.id)
+    with engine.connect() as conn:
+        conn.execute(delete(tb_ssh_connect).where(tb_ssh_connect.c.id == body.id))
+    return {
+        "code": 0
+    }
+
+
 @app.websocket("/ssh/connect")
-async def websocket_endpoint(websocket: WebSocket, name: str, host: str, port: int, user: str, password: str):
+async def websocket_endpoint(
+        websocket: WebSocket,
+        name: str,
+        host: str,
+        port: int,
+        user: str,
+        password: str,
+        rows: int,
+        cols: int
+):
     await websocket.accept()
+    password = urllib.parse.unquote(password)
     logging.info(f'accepted host:{host}, port:{port}, user:{user}, password：{password}')
     with paramiko.SSHClient() as ssh_client:
         # ssh_client.load_system_host_keys()
@@ -98,6 +117,7 @@ async def websocket_endpoint(websocket: WebSocket, name: str, host: str, port: i
             await websocket.close(reason=str(e))
             return
         with ssh_client.invoke_shell(term='xterm') as chan:
+            chan.resize_pty(cols, rows)
             # chan.setblocking(1)
             # await read_chan(websocket, chan)
             consumer_task = asyncio.create_task(read_chan(websocket, chan))
@@ -129,7 +149,11 @@ async def read_sock(websocket, chan):
             data = await websocket.receive_text()
         except WebSocketDisconnect:
             break
+        print('recv sock: ', data)
         event = json.loads(data)
         data = event.get('input')
         if data:
             await asyncio.to_thread(chan.send, data)
+        size = event.get('resize')
+        if size:
+            await asyncio.to_thread(chan.resize_pty, *size)
