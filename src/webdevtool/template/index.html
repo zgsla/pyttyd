@@ -46,89 +46,93 @@
           <a class="navbar-brand" href="/">WebDevTool</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="#">主页</a></li>
-            <li><a href="#" id="ssh">ssh</a></li>
-            <li><a href="#contact">Contact</a></li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">数据库 <span class="caret"></span></a>
+          <ul class="nav nav-tabs navbar-nav" role="tablist">
+            <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">主页</a></li>
+            <li role="presentation"><a href="#ssh" aria-controls="ssh" role="tab" data-toggle="tab">ssh</a></li>
+            <li class="dropdown disabled" role="presentation">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">数据库<span class="caret"></span></a>
               <ul class="dropdown-menu">
-                <li><a href="#" id="mysql">mysql</a></li>
-                <li><a href="#">pgsql</a></li>
-                <li><a href="#">Something else here</a></li>
-                <li role="separator" class="divider"></li>
-                <li class="dropdown-header">Nav header</li>
-                <li class="disabled"><a href="#">Separated link</a></li>
-                <li><a href="#">One more separated link</a></li>
+                <li><a href="#mysql" aria-controls="mysql" role="tab" data-toggle="tab">mysql</a></li>
+                <li class="disabled"><a href="#pgsql" aria-controls="pgsql" role="tab" data-toggle="tab">pgsql</a></li>
               </ul>
             </li>
+            <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>
           </ul>
+          
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="../navbar/">Default</a></li>
+            <li><a href="https://github.com/zhanglaiya/webdevtool" target="_blank">源码</a></li>
             <li><a href="../navbar-static-top/">Static top</a></li>
             <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
-    <div class="container ssh">
-
+    <div class="container tab-content">
+      <div role="tabpanel" class="tab-pane active" id="home">
+        <p>
+          Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua, retro synth master cleanse. Mustache cliche tempor, williamsburg carles vegan helvetica. Reprehenderit butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, qui irure terry richardson ex squid. Aliquip placeat salvia cillum iphone. Seitan aliquip quis cardigan american apparel, butcher voluptate nisi qui.
+        </p>
+      </div>
+      <div role="tabpanel" class="tab-pane" id="ssh">
+        <div class="col-md-2">
+          <ul class="list-group">
+            <li class="list-group-item">test</li>
+          </ul>
+        </div>
+        <div class="col-md-10">
+          
+          <form class="form-horizontal" role="form" id="ssh">
+            <div class="form-group hide">
+              <label class="col-sm-2 control-label">连接名</label>
+              <div class="col-sm-10">
+                <input class="form-control" id="id" type="text">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">连接名</label>
+              <div class="col-sm-10">
+                <input class="form-control" id="name" type="text">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">主机</label>
+              <div class="col-sm-10">
+                <input class="form-control" id="host" type="text" value="localhost">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">端口</label>
+              <div class="col-sm-10">
+                <input class="form-control" id="port" type="text" value="22">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">用户</label>
+              <div class="col-sm-10">
+                <input class="form-control" id="user" type="text">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="password" class="col-sm-2 control-label">密码</label>
+              <div class="col-sm-10">
+                <input type="password" class="form-control" id="password">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <button id="save" type="button" class="btn btn-default" data-loading-text="保存中...">保存</button>
+                <button id="connect" type="button" class="btn btn-default" data-loading-text="连接中...">连接</button>
+              </div>
+            </div>
+          </form>
+          
+        </div>
+      </div>
+      <div role="tabpanel" class="tab-pane" id="mysql">暂无</div>
+      <div role="tabpanel" class="tab-pane" id="messages">...</div>
+      <div role="tabpanel" class="tab-pane" id="settings">...</div>
       <!-- Main component for a primary marketing message or call to action -->
-      <div class="col-md-2">
-        <ul class="list-group">
-          <li class="list-group-item active">ssh</li>
-          <li class="list-group-item">数据库</li>
-          <li class="list-group-item disabled">xx </li>
-          <li class="list-group-item">yy</li>
-          <li class="list-group-item disabled">zz</li>
-        </ul>
-        
-      </div>
-      <div class="col-md-10">
-        <form class="form-horizontal" role="form">
-          <div class="form-group">
-            <label class="col-sm-2 control-label">连接名</label>
-            <div class="col-sm-10">
-              <input class="form-control" id="name" type="text" aria-describedby="inputError2Status">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label">主机</label>
-            <div class="col-sm-10">
-              <input class="form-control" id="host" type="text" value="localhost">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label">端口</label>
-            <div class="col-sm-10">
-              <input class="form-control" id="port" type="text" value="22">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label">用户</label>
-            <div class="col-sm-10">
-              <input class="form-control" id="user" type="text">
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="password" class="col-sm-2 control-label">密码</label>
-            <div class="col-sm-10">
-              <input type="password" class="form-control" id="password">
-            </div>
-          </div>
-          <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
-              <button id="save" type="button" class="btn btn-default" data-loading-text="保存中...">保存</button>
-              <button id="connect" type="button" class="btn btn-default" data-loading-text="连接中...">连接</button>
-            </div>
-          </div>
-        </form>
-        
-      </div>
-      
-
     </div> <!-- /container -->
-
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
@@ -167,7 +171,6 @@
         }
 
         function send(url, data, callback) {
-          
           console.log(url);
           console.log(data);
           $.ajax({
@@ -180,7 +183,6 @@
               callback(res);
             }
           });
-          
         }
         
         function parseParam (param, key) {
@@ -195,6 +197,26 @@
           }
           return paramStr.substr(1);
         };
+
+        $('#navbar ul[role="tablist"] a').click(function (e) {
+          e.preventDefault()
+          $(this).tab('show')
+          // if (!e.target.parentElement.parentElement.getAttribute('class').includes('navbar-right')){
+          // }
+        })
+        
+        $('#navbar ul[role="tablist"] a').on('shown.bs.tab', function (e) {
+          var ariaControls = e.target.getAttribute('aria-controls')
+          if (ariaControls === 'ssh'){
+            $.ajax({
+              url: 'ssh',
+              type: "GET",
+              success: function(res) {
+                console.log(res)
+              }
+            });
+          }
+        })
 
         $("#save").click(function(){
           var inputData = new Object();
@@ -213,7 +235,6 @@
               }
             }
           );
-          
         });
         
         $("#connect").click(function(){
@@ -223,27 +244,7 @@
             return
           }
           window.open(window.location.href + "ssh/connect?" + parseParam(inputData))
-          // var $btn = $(this).button('loading');
-          // send(connectUrl, inputData, function(data) {
-          //   if (data.code == 0) 
-          //     {
-          //       $btn.button('reset');
-          //       console.log(window.location.href)
-          //     }
-          //   // window.open(window.location.url)
-          // })
-          
         });
-        // $(".btn").click(function(){
-        //   $(this).button('loading').delay(1000).queue(function() {
-        //     $(this).button('reset');
-        //     $(this).dequeue();
-        //   });
-        // });
-
-        // $('#ssh').on('click', function(e){
-        //   console.log(e)
-        // })
       });
 
     </script>
