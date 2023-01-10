@@ -9,8 +9,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.websockets import WebSocketDisconnect
+from sqlalchemy import insert, update, select
 
-from webdevtool.schema import SSHConnectModel
+from webdevtool.schema import CreateSSHConnectModel, UpdateSSHConnectModel
+from webdevtool.model import engine, tb_ssh_connect
 
 app = FastAPI()
 
@@ -29,9 +31,55 @@ async def ssh(request: Request, name: str, host: str, port: int, user: str, pass
     return templates.TemplateResponse("terminal.html", context={'request': request, 'name': name})
 
 
+@app.get("/ssh")
+async def ssh(ssh_id: int = None):
+    with engine.connect() as conn:
+        stmt = select(tb_ssh_connect)
+        if ssh_id is not None:
+            stmt = stmt.where(
+                tb_ssh_connect.c.id == ssh_id
+            )
+        res = conn.execute(stmt)
+        if ssh_id is None:
+            data = res.fetchall()
+        else:
+            data = res.fetchone()
+    print(data)
+    return {
+        "code": 0,
+        "data": data
+    }
+
+
 @app.post("/ssh")
-async def ssh(body: SSHConnectModel):
-    print(body)
+async def ssh(body: CreateSSHConnectModel):
+    print('insert ssh', body)
+    with engine.connect() as conn:
+        conn.execute(
+            insert(tb_ssh_connect).values(
+                name=body.name,
+                host=body.host,
+                port=body.port,
+                user=body.user,
+                password=body.password
+            )
+        )
+    return {
+        "code": 0
+    }
+
+
+@app.put("/ssh")
+async def ssh(body: UpdateSSHConnectModel):
+    print('update ssh', body)
+    with engine.connect() as conn:
+        conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == 1).values(
+            name=body.name,
+            host=body.host,
+            port=body.port,
+            user=body.user,
+            password=body.password
+        ))
     return {
         "code": 0
     }

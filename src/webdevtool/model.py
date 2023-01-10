@@ -24,22 +24,19 @@ tb_ssh_connect = Table(
 )
 
 
-try:
-    tb_ssh_connect.create(engine)
-except:
-    pass
+tb_ssh_connect.create(engine, checkfirst=True)
 
 
 if __name__ == '__main__':
-    from sqlalchemy import insert
-    tb_ssh_connect.create(engine)
+    from sqlalchemy import insert, select, update
     with engine.connect() as conn:
 
-        stmt = insert(tb_ssh_connect).values(
-            name='1',
-            host='1',
-            port='1',
-            user='1',
-            password='1',
-        )
-        conn.execute(stmt)
+        # stmt = insert(tb_ssh_connect).values(name='1', host='1', port='1', user='1', password='1')
+        # stmt = update(tb_ssh_connect).where(tb_ssh_connect.c.id == 1).values(
+        #     name='2'
+        # )
+        # conn.execute(stmt)
+        stmt = select(tb_ssh_connect)
+        a = conn.execute(stmt)
+
+        print(a.fetchall())
