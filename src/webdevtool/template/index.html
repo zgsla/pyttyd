@@ -289,7 +289,7 @@
         $("#ssh ul").on('click', 'li', function(){
           $("#ssh li").removeClass('active');
           this.setAttribute('class', this.getAttribute('class') + ' active');
-
+          $('#ssh div[class~=form-group]').removeClass('has-error')
           ssh_id = this.getAttribute('data-id')
           if (ssh_id){
             $("#id").val(ssh_id);
