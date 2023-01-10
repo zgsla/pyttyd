@@ -76,14 +76,14 @@
       <div role="tabpanel" class="tab-pane" id="ssh">
         <div class="col-md-2">
           <ul class="list-group">
-            <li class="list-group-item">test</li>
+            <li class="list-group-item">新建连接</li>
           </ul>
         </div>
         <div class="col-md-10">
           
-          <form class="form-horizontal" role="form" id="ssh">
+          <form class="form-horizontal" role="form">
             <div class="form-group hide">
-              <label class="col-sm-2 control-label">连接名</label>
+              <label class="col-sm-2 control-label">id</label>
               <div class="col-sm-10">
                 <input class="form-control" id="id" type="text">
               </div>
@@ -97,7 +97,7 @@
             <div class="form-group">
               <label class="col-sm-2 control-label">主机</label>
               <div class="col-sm-10">
-                <input class="form-control" id="host" type="text" value="localhost">
+                <input class="form-control" id="host" type="text">
               </div>
             </div>
             <div class="form-group">
@@ -120,8 +120,9 @@
             </div>
             <div class="form-group">
               <div class="col-sm-offset-2 col-sm-10">
-                <button id="save" type="button" class="btn btn-default" data-loading-text="保存中...">保存</button>
-                <button id="connect" type="button" class="btn btn-default" data-loading-text="连接中...">连接</button>
+                <button id="save" type="button" class="btn btn-primary" data-loading-text="保存中...">保存</button>
+                <button id="delete" type="button" class="btn btn-danger hide" data-loading-text="正在删除...">删除</button>
+                <button id="connect" type="button" class="btn btn-warning" data-loading-text="连接中...">连接</button>
               </div>
             </div>
           </form>
@@ -145,7 +146,7 @@
     <script>
       $(function() {
         
-        var saveUrl = "/ssh"
+        var sshCRUDUrl = "/ssh"
         var connectUrl = "/ssh/connect"
         
         function checkInput(data) {
@@ -169,22 +170,22 @@
           
           return checkStatus;
         }
-
-        function send(url, data, callback) {
-          console.log(url);
-          console.log(data);
+        
+        function loadSSHList() {
           $.ajax({
-            url: url,
-            type: "POST",
-            data: JSON.stringify(data),
-            dataType: "json",
-            contentType: "application/json; charset=utf-8",
+            url: sshCRUDUrl,
+            type: "GET",
             success: function(res) {
-              callback(res);
+              if (res.code === 0){
+                $('#ssh ul').html('<li class="list-group-item active">新建连接</li>');
+                $.each(res.data, function(i, item) {
+                  $('#ssh ul').append('<li class="list-group-item" data-id="' + item.id + '">'+ item.name +'</li>')
+                })
+              }
             }
           });
         }
-        
+
         function parseParam (param, key) {
           var paramStr = "";
           if (param instanceof String || param instanceof Number || param instanceof Boolean) {
@@ -208,13 +209,7 @@
         $('#navbar ul[role="tablist"] a').on('shown.bs.tab', function (e) {
           var ariaControls = e.target.getAttribute('aria-controls')
           if (ariaControls === 'ssh'){
-            $.ajax({
-              url: 'ssh',
-              type: "GET",
-              success: function(res) {
-                console.log(res)
-              }
-            });
+            loadSSHList();
           }
         })
 
@@ -224,26 +219,106 @@
           if (checkStatus===1){
             return
           }
+          var $id = $("#id").val();
           var $btn = $(this).button('loading');
-          send(
-            saveUrl, 
-            inputData,
-            function(data) {
-              if (data.code == 0) 
+
+          var requestType = "POST"
+          if ($id){
+            requestType = "PUT";
+            inputData['id'] = $id
+          }
+          $.ajax({
+            url: sshCRUDUrl,
+            type: requestType,
+            data: JSON.stringify(inputData),
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            success: function(res) {
+              if (res.code == 0) 
               {
                 $btn.button('reset');
+                $('#ssh div[class~=form-group]').removeClass('has-error')
+                loadSSHList();
+                if (requestType === 'POST'){
+                  $("#id").val(null);
+                  $("#name").val('');
+                  $("#host").val('');
+                  $("#port").val('22');
+                  $("#user").val('');
+                  $("#password").val('');
+                }
               }
             }
-          );
+          });
         });
         
+        $("#delete").click(function(){
+          var $id = $("#id").val();
+          if ($id){
+            var $btn = $(this).button('loading');
+            $.ajax({
+              url: sshCRUDUrl,
+              type: 'DELETE',
+              data: JSON.stringify({'id': $id}),
+              dataType: "json",
+              contentType: "application/json; charset=utf-8",
+              success: function(res) {
+                if (res.code == 0) 
+                {
+                  $btn.button('reset');
+                  $('#ssh div[class~=form-group]').removeClass('has-error')
+                  loadSSHList();
+                  $("#delete").addClass('hide');
+                }
+              }
+            });
+          }
+          
+        });
+
         $("#connect").click(function(){
           var inputData = new Object();
           checkStatus = checkInput(inputData);
           if (checkStatus===1){
             return
           }
-          window.open(window.location.href + "ssh/connect?" + parseParam(inputData))
+          $('#ssh div[class~=form-group]').removeClass('has-error')
+          window.open(window.location.href + "ssh/connect?" + parseParam(inputData));
+        });
+
+        $("#ssh ul").on('click', 'li', function(){
+          $("#ssh li").removeClass('active');
+          this.setAttribute('class', this.getAttribute('class') + ' active');
+
+          ssh_id = this.getAttribute('data-id')
+          if (ssh_id){
+            $("#id").val(ssh_id);
+            $("#delete").removeClass('hide')
+            $.ajax({
+              url: sshCRUDUrl + '?ssh_id=' + ssh_id,
+              type: "GET",
+              success: function(res) {
+                if (res.code == 0) 
+                {
+                  $("#name").val(res.data.name);
+                  $("#host").val(res.data.host);
+                  $("#port").val(res.data.port);
+                  $("#user").val(res.data.user);
+                  $("#password").val(res.data.password);
+                }
+              }
+            });
+          } 
+          else
+          {
+            $("#id").val(null);
+            $("#name").val('');
+            $("#host").val('');
+            $("#port").val('22');
+            $("#user").val('');
+            $("#password").val('');
+            $("#delete").addClass('hide');
+          }
         });
       });
 

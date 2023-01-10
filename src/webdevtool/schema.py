@@ -9,5 +9,9 @@ class CreateSSHConnectModel(BaseModel):
     password: str = Field(...)
 
 
-class UpdateSSHConnectModel(CreateSSHConnectModel):
+class DeleteSSHConnectModel(BaseModel):
     id: int = Field(...)
+
+
+class UpdateSSHConnectModel(CreateSSHConnectModel, DeleteSSHConnectModel):
+    pass
