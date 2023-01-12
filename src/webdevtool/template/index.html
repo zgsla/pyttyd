@@ -120,9 +120,10 @@
             </div>
             <div class="form-group">
               <div class="col-sm-offset-2 col-sm-10">
-                <button id="save" type="button" class="btn btn-primary" data-loading-text="保存中...">保存</button>
-                <button id="delete" type="button" class="btn btn-danger hide" data-loading-text="正在删除...">删除</button>
+                <!-- <button id="save" type="button" class="btn btn-primary" data-loading-text="保存中...">保存</button> -->
                 <button id="connect" type="button" class="btn btn-warning" data-loading-text="连接中...">连接</button>
+                <button id="delete" type="button" class="btn btn-danger hide" data-loading-text="正在删除...">删除</button>
+                
               </div>
             </div>
           </form>
@@ -141,33 +142,35 @@
     <script src="{{ url_for('static', path='/js/jquery.min.js') }}"></script>
     <!-- <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script> -->
     <script src="{{ url_for('static', path='/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/jsencrypt.min.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/crypto-js.js') }}"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{{ url_for('static', path='/js/ie10-viewport-bug-workaround.js') }}"></script>
     <script>
       $(function() {
         
-        var sshCRUDUrl = "/ssh"
-        var connectUrl = "/ssh/connect"
-        
+        var sshCRUDUrl = "/ssh";
+        var connectUrl = "/ssh/connect";
+        var publickeyUrl = "/publickey"
+        var encrypt = new JSEncrypt();
+        encrypt.setPublicKey('{{ publickey }}');
+
         function checkInput(data) {
           var $name = $("#name");
           var $host = $("#host");
           var $port = $("#port");
           var $user = $("#user");
-          var $password = $("#password");
           var checkStatus = 0;
-          $.each([$name, $host, $port, $user, $password],function(i,ele){
+          $.each([$name, $host, $port, $user],function(i,ele){
             var key = ele.attr('id');
             var value = ele.val();
             if (!value){
-              console.log(key + ' invalid');
               ele.parent().parent().addClass('has-error')
               checkStatus = 1
             } else {
               data[key] = value
             }
           });
-          
           return checkStatus;
         }
         
@@ -219,14 +222,45 @@
           if (checkStatus===1){
             return
           }
-          var $id = $("#id").val();
+        });
+        
+        $("#connect").click(function(){
+          var inputData = new Object();
+          checkStatus = checkInput(inputData);
+          if (checkStatus===1){
+            return
+          }
+          var id = $("#id").val();
           var $btn = $(this).button('loading');
+          var $pass = $('#password')
 
           var requestType = "POST"
-          if ($id){
-            requestType = "PUT";
-            inputData['id'] = $id
+
+          if ($pass.val()){
+            inputData.password = encrypt.encrypt($pass.val())
+          }else{
+            if (id){
+              requestType = "PUT";
+              inputData['id'] = id
+            }else{
+              $pass.parent().parent().addClass('has-error')
+            }
           }
+          
+          // if ($id){
+          //   requestType = "PUT";
+          //   inputData['id'] = $id
+          //   if ($('#password').val()){
+          //     inputData.password = encrypt.encrypt($('#password').val())
+          //   }
+          // } else {
+          //   if ($('#password').val()){
+          //     inputData.password = encrypt.encrypt($('#password').val())
+          //   }else{
+          //     $('#password').parent().parent().addClass('has-error')
+          //   }
+          // }
+
           $.ajax({
             url: sshCRUDUrl,
             type: requestType,
@@ -239,19 +273,12 @@
                 $btn.button('reset');
                 $('#ssh div[class~=form-group]').removeClass('has-error')
                 loadSSHList();
-                if (requestType === 'POST'){
-                  $("#id").val(null);
-                  $("#name").val('');
-                  $("#host").val('');
-                  $("#port").val('22');
-                  $("#user").val('');
-                  $("#password").val('');
-                }
               }
             }
           });
+          window.open(window.location.href + "ssh/connect?" + parseParam(inputData));
         });
-        
+
         $("#delete").click(function(){
           var $id = $("#id").val();
           if ($id){
@@ -276,22 +303,14 @@
           
         });
 
-        $("#connect").click(function(){
-          var inputData = new Object();
-          checkStatus = checkInput(inputData);
-          if (checkStatus===1){
-            return
-          }
-          $('#ssh div[class~=form-group]').removeClass('has-error')
-          window.open(window.location.href + "ssh/connect?" + parseParam(inputData));
-        });
-
         $("#ssh ul").on('click', 'li', function(){
           $("#ssh li").removeClass('active');
           this.setAttribute('class', this.getAttribute('class') + ' active');
           $('#ssh div[class~=form-group]').removeClass('has-error')
           ssh_id = this.getAttribute('data-id')
           if (ssh_id){
+            // var $p = $('<p id="name" class="form-control-static" style="text-indent: 12px;"></p>')
+            // $('#name').replaceWith($p)
             $("#id").val(ssh_id);
             $("#delete").removeClass('hide')
             $.ajax({
@@ -304,14 +323,16 @@
                   $("#host").val(res.data.host);
                   $("#port").val(res.data.port);
                   $("#user").val(res.data.user);
-                  $("#password").val(res.data.password);
+                  $("#password").val('');
+                  $("#password").setAttribute('placeholder', '点击修改')
                 }
               }
             });
-          } 
-          else
-          {
-            $("#id").val(null);
+          } else{
+            // var $input = $('<input class="form-control" id="name" type="text">')
+            // $('#name').replaceWith($input).val('');
+
+            $("#id").val('');
             $("#name").val('');
             $("#host").val('');
             $("#port").val('22');

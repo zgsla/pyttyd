@@ -8,9 +8,9 @@ from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.websockets import WebSocketDisconnect
 from sqlalchemy import insert, update, select, delete
 
+from webdevtool.crypto import rsa_key
 from webdevtool.schema import CreateSSHConnectModel, UpdateSSHConnectModel, DeleteSSHConnectModel
 from webdevtool.model import engine, tb_ssh_connect
 
@@ -23,11 +23,17 @@ templates = Jinja2Templates(directory="src/webdevtool/template")
 
 @app.get("/", response_class=HTMLResponse)
 async def ssh(request: Request):
-    return templates.TemplateResponse("index.html", context={'request': request})
+    return templates.TemplateResponse(
+        "index.html",
+        context={
+            'request': request,
+            'publickey': rsa_key.pb_text().decode('utf8').replace('\n', '\\\n')
+        }
+    )
 
 
 @app.get("/ssh/connect", response_class=HTMLResponse)
-async def ssh(request: Request, name: str, host: str, port: int, user: str, password: str):
+async def ssh(request: Request, name: str, ssh_id: int):
     return templates.TemplateResponse("terminal.html", context={'request': request, 'name': name})
 
 
@@ -54,7 +60,7 @@ async def ssh(ssh_id: int = None):
 async def ssh(body: CreateSSHConnectModel):
     print('insert ssh', body)
     with engine.connect() as conn:
-        conn.execute(
+        result = conn.execute(
             insert(tb_ssh_connect).values(
                 name=body.name,
                 host=body.host,
@@ -63,25 +69,30 @@ async def ssh(body: CreateSSHConnectModel):
                 password=body.password
             )
         )
+        lastrowid = result.lastrowid
     return {
-        "code": 0
+        "code": 0,
+        "id": lastrowid
     }
 
 
 @app.put("/ssh")
 async def ssh(body: UpdateSSHConnectModel):
     print('update ssh', body)
+    password = rsa_key.pv_key.decrypt()
     with engine.connect() as conn:
-        conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == body.id).values(
+        result = conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == body.id).values(
             name=body.name,
             host=body.host,
             port=body.port,
             user=body.user,
             password=body.password
         ))
-    return {
-        "code": 0
-    }
+        rowcount = result.rowcount
+    if rowcount == 1:
+        return {"code": 0, "id": body.id}
+    else:
+        return {"code": 1}
 
 
 @app.delete("/ssh")
@@ -113,7 +124,7 @@ async def websocket_endpoint(
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             ssh_client.connect(host, port, user, password)
-        except paramiko.ssh_exception.NoValidConnectionsError as e:
+        except Exception as e:
             await websocket.close(reason=str(e))
             return
         with ssh_client.invoke_shell(term='xterm') as chan:
@@ -138,6 +149,7 @@ async def read_chan(websocket, chan):
             data = await asyncio.to_thread(chan.recv, 1024)
         except Exception as e:
             logging.error('chan.recv error', exc_info=e)
+            await websocket.close(reason=str(e))
             break
         if data:
             await websocket.send_text(data.decode('utf8'))
@@ -147,9 +159,10 @@ async def read_sock(websocket, chan):
     while True:
         try:
             data = await websocket.receive_text()
-        except WebSocketDisconnect:
+        except Exception as e:
+            logging.error('websocket.receive_text error', exc_info=e)
+            await websocket.close(reason=str(e))
             break
-        print('recv sock: ', data)
         event = json.loads(data)
         data = event.get('input')
         if data:
