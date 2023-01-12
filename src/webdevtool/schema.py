@@ -14,4 +14,4 @@ class DeleteSSHConnectModel(BaseModel):
 
 
 class UpdateSSHConnectModel(CreateSSHConnectModel, DeleteSSHConnectModel):
-    pass
+    password: str = Field(None)

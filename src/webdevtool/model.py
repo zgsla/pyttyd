@@ -6,7 +6,8 @@ metadata = MetaData()
 engine = create_engine(
     'sqlite:///sqlite.db',
     echo=True,
-    pool_recycle=120
+    pool_recycle=120,
+    implicit_returning=False
 )
 
 tb_ssh_connect = Table(
