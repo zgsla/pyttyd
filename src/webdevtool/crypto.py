@@ -1,13 +1,18 @@
+import datetime
 import random
 import base64
 from typing import Union
 
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     PrivateFormat,
     PublicFormat,
     NoEncryption,
+    BestAvailableEncryption,
     load_pem_private_key,
     load_pem_public_key
 )
@@ -22,7 +27,7 @@ class RSAPrivateKey:
         else:
             self._key = load_pem_private_key(key, None)
             self._text = key
-    
+
     def decrypt(self, sign):
         # return rsa.decrypt(sign, self.pv_key)
         return self._key.decrypt(sign, padding=padding.PKCS1v15())
@@ -61,6 +66,14 @@ class RSAKey:
         return self.pv_key.private_bytes(
             Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
         )
+
+    def encrypt(self, text):
+        # return rsa.encrypt(text, self.pb_key)
+        return self.pb_key.encrypt(text, padding=padding.PKCS1v15())
+
+    def decrypt(self, sign):
+        # return rsa.decrypt(sign, self.pv_key)
+        return self.pv_key.decrypt(sign, padding=padding.PKCS1v15())
 
 
 class RSAKeyPool:

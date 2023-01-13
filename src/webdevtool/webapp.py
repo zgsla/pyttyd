@@ -1,3 +1,5 @@
+import os
+import sys
 import json
 import asyncio
 import logging
@@ -10,15 +12,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import insert, update, select, delete
 
+from webdevtool import __basepath__
 from webdevtool.crypto import rsa_key
 from webdevtool.schema import CreateSSHConnectModel, UpdateSSHConnectModel, DeleteSSHConnectModel
 from webdevtool.model import engine, tb_ssh_connect
 
 app = FastAPI()
+print(app.root_path)
 
-app.mount("/static", StaticFiles(directory="src/webdevtool/static"), name="static")
+app.mount("/static", StaticFiles(directory=f"{os.path.join(__basepath__, 'static')}"), name="static")
 
-templates = Jinja2Templates(directory="src/webdevtool/template")
+templates = Jinja2Templates(directory=f"{os.path.join(__basepath__, 'template')}")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -33,7 +37,7 @@ async def ssh(request: Request):
 
 
 @app.get("/ssh/connect", response_class=HTMLResponse)
-async def ssh(request: Request, name: str, ssh_id: int):
+async def ssh(request: Request, ssh_id: int, name: str):
     return templates.TemplateResponse("terminal.html", context={'request': request, 'name': name})
 
 
@@ -79,27 +83,31 @@ async def ssh(body: CreateSSHConnectModel):
 @app.put("/ssh")
 async def ssh(body: UpdateSSHConnectModel):
     print('update ssh', body)
-    password = rsa_key.pv_key.decrypt()
+
+    password = rsa_key.decrypt(body.password) if body.password else body.password
+
+    print(password)
+
     with engine.connect() as conn:
-        result = conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == body.id).values(
+        result = conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == body.ssh_id).values(
             name=body.name,
             host=body.host,
             port=body.port,
             user=body.user,
-            password=body.password
+            password=password
         ))
         rowcount = result.rowcount
     if rowcount == 1:
-        return {"code": 0, "id": body.id}
+        return {"code": 0}
     else:
         return {"code": 1}
 
 
 @app.delete("/ssh")
 async def ssh(body: DeleteSSHConnectModel):
-    print('delete ssh', body.id)
+    print('delete ssh', body.ssh_id)
     with engine.connect() as conn:
-        conn.execute(delete(tb_ssh_connect).where(tb_ssh_connect.c.id == body.id))
+        conn.execute(delete(tb_ssh_connect).where(tb_ssh_connect.c.id == body.ssh_id))
     return {
         "code": 0
     }
