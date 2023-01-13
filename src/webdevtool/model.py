@@ -1,10 +1,15 @@
+import os
 import datetime
+
+from webdevtool import __basepath__
 
 from sqlalchemy import MetaData, create_engine, Table, String, Column, PrimaryKeyConstraint, TIMESTAMP, Integer
 
 metadata = MetaData()
+
+
 engine = create_engine(
-    'sqlite:///sqlite.db',
+    f'sqlite:///{os.path.join(__basepath__, "sqlite.db")}',
     echo=True,
     pool_recycle=120,
     implicit_returning=False

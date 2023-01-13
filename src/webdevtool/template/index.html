@@ -155,6 +155,25 @@
         var encrypt = new JSEncrypt();
         encrypt.setPublicKey('{{ publickey }}');
 
+        /* 随机生成密钥 */
+        // len为目的秘钥长度
+        function initKey(len){ 
+          len = len || 32;
+          let $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz23456789~!@#$%^&*()_+}{":?><';    /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
+          // maxPos是$chars的长度
+          let  maxPos = $chars.length;
+          let pwd = '';
+          let i=0;
+          for (i = 0; i < len; i++) { 
+              // chartAt方法通过index从字符串中获取指定字符
+              // 随机数*长度向下取整作为取字符的index
+              pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+          }
+          return pwd;
+        }
+
+        console.log(initKey(128/8))
+
         function checkInput(data) {
           var $name = $("#name");
           var $host = $("#host");
@@ -241,7 +260,7 @@
           }else{
             if (id){
               requestType = "PUT";
-              inputData['id'] = id
+              inputData['ssh_id'] = id
             }else{
               $pass.parent().parent().addClass('has-error')
             }
@@ -273,10 +292,11 @@
                 $btn.button('reset');
                 $('#ssh div[class~=form-group]').removeClass('has-error')
                 loadSSHList();
+                window.open(window.location.href + "ssh/connect?" + parseParam(inputData));
               }
             }
           });
-          window.open(window.location.href + "ssh/connect?" + parseParam(inputData));
+          
         });
 
         $("#delete").click(function(){
@@ -286,7 +306,7 @@
             $.ajax({
               url: sshCRUDUrl,
               type: 'DELETE',
-              data: JSON.stringify({'id': $id}),
+              data: JSON.stringify({'ssh_id': $id}),
               dataType: "json",
               contentType: "application/json; charset=utf-8",
               success: function(res) {
@@ -324,7 +344,6 @@
                   $("#port").val(res.data.port);
                   $("#user").val(res.data.user);
                   $("#password").val('');
-                  $("#password").setAttribute('placeholder', '点击修改')
                 }
               }
             });
