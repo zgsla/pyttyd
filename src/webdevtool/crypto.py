@@ -4,9 +4,10 @@ import base64
 from typing import Union
 
 from cryptography import x509
+from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
 from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import hashes, padding
+from cryptography.hazmat.primitives.asymmetric import rsa, padding as asy_padding
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     PrivateFormat,
@@ -30,7 +31,7 @@ class RSAPrivateKey:
 
     def decrypt(self, sign):
         # return rsa.decrypt(sign, self.pv_key)
-        return self._key.decrypt(sign, padding=padding.PKCS1v15())
+        return self._key.decrypt(sign, padding=asy_padding.PKCS1v15())
 
 
 class RSAPublicKey:
@@ -42,7 +43,7 @@ class RSAPublicKey:
 
     def encrypt(self, text):
         # return rsa.encrypt(text, self.pb_key)
-        return self.pb_key.encrypt(text, padding=padding.PKCS1v15())
+        return self.pb_key.encrypt(text, padding=asy_padding.PKCS1v15())
 
 
 class RSAKey:
@@ -69,11 +70,11 @@ class RSAKey:
 
     def encrypt(self, text):
         # return rsa.encrypt(text, self.pb_key)
-        return self.pb_key.encrypt(text, padding=padding.PKCS1v15())
+        return self.pb_key.encrypt(text, padding=asy_padding.PKCS1v15())
 
     def decrypt(self, sign):
         # return rsa.decrypt(sign, self.pv_key)
-        return self.pv_key.decrypt(sign, padding=padding.PKCS1v15())
+        return self.pv_key.decrypt(base64.b64decode(sign), padding=asy_padding.PKCS1v15())
 
 
 class RSAKeyPool:
@@ -105,6 +106,33 @@ class RSAKeyPool:
         pb_text = self.random_choice_pb_text()
         pb_key = RSAPublicKey(pb_text)
         return pb_text, pb_key.encrypt(text)
+
+
+class AESCrypto:
+
+    def __init__(self, key, iv):
+        self._cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+        self._pkcs7 = padding.PKCS7(algorithms.AES.block_size)
+
+    def decrypt(self, encrypted):
+        dec = self._cipher.decryptor()
+        unpadder = self._pkcs7.unpadder()
+        unpadder_data = base64.b64decode(encrypted)
+        data = unpadder.update(dec.update(unpadder_data))
+        try:
+            uppadded_data = data + unpadder.finalize()
+        except ValueError:
+            raise Exception('无效的加密信息!')
+
+        return uppadded_data.decode('utf8')
+
+    def encrypt(self, src):
+        enc = self._cipher.encryptor()
+        padder = self._pkcs7.padder()
+        padded_data = padder.update(src) + padder.finalize()
+
+        padded_data = enc.update(padded_data)
+        return base64.b64encode(padded_data)
 
 
 rsa_key = RSAKey(65537, 2048)
