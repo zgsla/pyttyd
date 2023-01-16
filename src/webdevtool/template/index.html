@@ -215,19 +215,19 @@
                         'auth': aesPassEncrypted
                     },
                     success: function (res) {
-                        if (res.code == 0) {
-                            var data = JSON.parse(
-                                CryptoJS.AES.decrypt(
-                                    res.data,
-                                    aesKey,
-                                    {
-                                        iv: aesIV,
-                                        mode: CryptoJS.mode.CBC,
-                                        padding: CryptoJS.pad.Pkcs7
-                                    }
-                                ).toString(CryptoJS.enc.Utf8)
-                            );
-                            successCallback(data);
+                        var data = JSON.parse(
+                            CryptoJS.AES.decrypt(
+                                res,
+                                aesKey,
+                                {
+                                    iv: aesIV,
+                                    mode: CryptoJS.mode.CBC,
+                                    padding: CryptoJS.pad.Pkcs7
+                                }
+                            ).toString(CryptoJS.enc.Utf8)
+                        );
+                        if (data.code == 0) {
+                            successCallback(data.data);
                         }
                     }
                 });
@@ -276,6 +276,7 @@
                 }
                 var id = $("#id").val();
                 var $btn = $(this).button('loading');
+                var requestType = "POST";
                 if (id) {
                     requestType = "PUT";
                     inputData['id'] = id
@@ -306,7 +307,18 @@
                     },
                     contentType: "application/json; charset=utf-8",
                     success: function (res) {
-                        if (res.code == 0) {
+                        var data = JSON.parse(
+                            CryptoJS.AES.decrypt(
+                                res,
+                                aesKey,
+                                {
+                                    iv: aesIV,
+                                    mode: CryptoJS.mode.CBC,
+                                    padding: CryptoJS.pad.Pkcs7
+                                }
+                            ).toString(CryptoJS.enc.Utf8)
+                        );
+                        if (data.code == 0) {
                             $btn.button('reset');
                             $('#ssh div[class~=form-group]').removeClass('has-error')
                             loadSSHList();

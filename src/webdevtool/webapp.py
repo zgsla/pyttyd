@@ -54,10 +54,7 @@ async def ssh(token: str = None, cryptor: CryptoDepend = Depends(CryptoDepend)):
 
     with engine.connect() as conn:
         res = conn.execute(stmt)
-        if token is None:
-            data = res.fetchall()
-        else:
-            data = res.fetchone()
+        data = res.fetchall() if token is None else res.fetchone()
 
     def to_dict(row):
         dct = {}
@@ -68,37 +65,40 @@ async def ssh(token: str = None, cryptor: CryptoDepend = Depends(CryptoDepend)):
                 dct[k] = v
         return dct
 
-    if isinstance(data, list):
-        data = [to_dict(row) for row in data]
-    else:
-        data = to_dict(data)
-    data = json.dumps(data).encode('utf8')
-    encrypted = cryptor.encrypt(data)
-
-    return {
-        "code": 0,
-        "data": encrypted
-    }
+    return cryptor.encrypt(
+        json.dumps(
+            {
+                "code": 0,
+                "data": [to_dict(row) for row in data] if isinstance(data, list) else to_dict(data)
+            }
+        ).encode('utf8')
+    )
 
 
 @app.post("/ssh")
-async def ssh(body: CreateSSHConnectModel):
+async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend), body: WdtModel):
     print('insert ssh', body)
+    data = cryptor.decrypt(body.token)
+    item = json.loads(data)
     with engine.connect() as conn:
         result = conn.execute(
             insert(tb_ssh_connect).values(
-                name=body.name,
-                host=body.host,
-                port=body.port,
-                user=body.user,
-                password=body.password
+                name=item['name'],
+                host=item['host'],
+                port=item['port'],
+                user=item['user'],
+                password=item['password']
             )
         )
         lastrowid = result.lastrowid
-    return {
-        "code": 0,
-        "id": lastrowid
-    }
+    return cryptor.encrypt(
+        json.dumps(
+            {
+                "code": 0,
+                "id": lastrowid
+            }
+        ).encode('utf8')
+    )
 
 
 @app.put("/ssh")
@@ -116,10 +116,14 @@ async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend), body: WdtModel):
             password=item['password']
         ))
         rowcount = result.rowcount
-    if rowcount == 1:
-        return {"code": 0}
-    else:
-        return {"code": 1}
+
+    return cryptor.encrypt(
+        json.dumps(
+            {
+                "code": 0 if rowcount == 1 else 1
+            }
+        ).encode('utf8')
+    )
 
 
 @app.delete("/ssh")
