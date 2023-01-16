@@ -1,4 +1,9 @@
+import json
+
+from fastapi import Header
 from pydantic import BaseModel, Field
+
+from webdevtool.crypto import AESCrypto, rsa_key
 
 
 class CreateSSHConnectModel(BaseModel):
@@ -20,3 +25,7 @@ class UpdateSSHConnectModel(BaseModel):
     port: int = Field(...)
     user: str = Field(...)
     password: str = Field(None)
+
+
+class WdtModel(BaseModel):
+    token: str = Field(...)

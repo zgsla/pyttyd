@@ -1,3 +1,5 @@
+import base64
+import datetime
 import os
 import sys
 import json
@@ -6,7 +8,7 @@ import logging
 import urllib.parse
 import paramiko
 
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import FastAPI, Request, WebSocket, Header, Depends, Body
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -14,11 +16,11 @@ from sqlalchemy import insert, update, select, delete
 
 from webdevtool import __basepath__
 from webdevtool.crypto import rsa_key
-from webdevtool.schema import CreateSSHConnectModel, UpdateSSHConnectModel, DeleteSSHConnectModel
+from webdevtool.depends import CryptoDepend
+from webdevtool.schema import CreateSSHConnectModel, UpdateSSHConnectModel, DeleteSSHConnectModel, WdtModel
 from webdevtool.model import engine, tb_ssh_connect
 
 app = FastAPI()
-print(app.root_path)
 
 app.mount("/static", StaticFiles(directory=f"{os.path.join(__basepath__, 'static')}"), name="static")
 
@@ -38,25 +40,44 @@ async def ssh(request: Request):
 
 @app.get("/ssh/connect", response_class=HTMLResponse)
 async def ssh(request: Request, ssh_id: int, name: str):
-    return templates.TemplateResponse("terminal.html", context={'request': request, 'name': name})
+    return templates.TemplateResponse("terminal.html", context={'request': request, 'name': name, 'publickey': rsa_key.pb_text().decode('utf8').replace('\n', '\\\n')})
 
 
 @app.get("/ssh")
-async def ssh(ssh_id: int = None):
+async def ssh(token: str = None, cryptor: CryptoDepend = Depends(CryptoDepend)):
+    stmt = select(tb_ssh_connect)
+    if token is not None:
+        ssh_id = cryptor.decrypt(token)
+        stmt = stmt.where(
+            tb_ssh_connect.c.id == ssh_id
+        )
+
     with engine.connect() as conn:
-        stmt = select(tb_ssh_connect)
-        if ssh_id is not None:
-            stmt = stmt.where(
-                tb_ssh_connect.c.id == ssh_id
-            )
         res = conn.execute(stmt)
-        if ssh_id is None:
+        if token is None:
             data = res.fetchall()
         else:
             data = res.fetchone()
+
+    def to_dict(row):
+        dct = {}
+        for k, v in row.items():
+            if isinstance(v, datetime.datetime):
+                dct[k] = v.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                dct[k] = v
+        return dct
+
+    if isinstance(data, list):
+        data = [to_dict(row) for row in data]
+    else:
+        data = to_dict(data)
+    data = json.dumps(data).encode('utf8')
+    encrypted = cryptor.encrypt(data)
+
     return {
         "code": 0,
-        "data": data
+        "data": encrypted
     }
 
 
@@ -81,20 +102,18 @@ async def ssh(body: CreateSSHConnectModel):
 
 
 @app.put("/ssh")
-async def ssh(body: UpdateSSHConnectModel):
+async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend), body: WdtModel):
     print('update ssh', body)
-
-    password = rsa_key.decrypt(body.password) if body.password else body.password
-
-    print(password)
+    data = cryptor.decrypt(body.token)
+    item = json.loads(data)
 
     with engine.connect() as conn:
-        result = conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == body.ssh_id).values(
-            name=body.name,
-            host=body.host,
-            port=body.port,
-            user=body.user,
-            password=password
+        result = conn.execute(update(tb_ssh_connect).where(tb_ssh_connect.c.id == item['id']).values(
+            name=item['name'],
+            host=item['host'],
+            port=item['port'],
+            user=item['user'],
+            password=item['password']
         ))
         rowcount = result.rowcount
     if rowcount == 1:
@@ -117,12 +136,10 @@ async def ssh(body: DeleteSSHConnectModel):
 async def websocket_endpoint(
         websocket: WebSocket,
         name: str,
-        host: str,
-        port: int,
-        user: str,
-        password: str,
+
         rows: int,
-        cols: int
+        cols: int,
+        token: str = None, cryptor: CryptoDepend = Depends(CryptoDepend),
 ):
     await websocket.accept()
     password = urllib.parse.unquote(password)
