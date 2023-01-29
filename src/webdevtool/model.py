@@ -17,7 +17,7 @@ engine = create_engine(
 
 tb_ssh_connect = Table(
     'tb_ssh_connect', metadata,
-    Column('id', Integer, autoincrement=True),
+    Column('id', String),
     Column('name', String),
     Column('host', String),
     Column('port', Integer),
