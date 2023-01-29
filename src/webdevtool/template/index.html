@@ -190,10 +190,11 @@
             function myGET(param, url, successCallback) {
                 var aesKey = CryptoJS.lib.WordArray.random(32);
                 var aesIV = CryptoJS.lib.WordArray.random(16);
-                var aesPassEncrypted = encrypt.encrypt(JSON.stringify({
+                var aesPass = JSON.stringify({
                     'key': aesKey.toString(CryptoJS.enc.Base64),
                     'iv': aesIV.toString(CryptoJS.enc.Base64)
-                }));
+                })
+                var aesPassEncrypted = encrypt.encrypt(aesPass);
 
                 if (param) {
                     var encrypted = CryptoJS.AES.encrypt(
@@ -283,10 +284,11 @@
                 }
                 var aesKey = CryptoJS.lib.WordArray.random(32);
                 var aesIV = CryptoJS.lib.WordArray.random(16);
-                var aesPassEncrypted = encrypt.encrypt(JSON.stringify({
+                var aesPass = JSON.stringify({
                     'key': aesKey.toString(CryptoJS.enc.Base64),
                     'iv': aesIV.toString(CryptoJS.enc.Base64)
-                }));
+                })
+                var aesPassEncrypted = encrypt.encrypt(aesPass);
                 var encrypted = CryptoJS.AES.encrypt(
                     CryptoJS.enc.Utf8.parse(JSON.stringify(inputData)),
                     aesKey,
@@ -334,7 +336,12 @@
                 if (checkStatus === 1) {
                     return
                 }
-                window.open(window.location.href + "ssh/connect?" + parseParam(inputData));
+                
+                termWindow = window.open(window.location.href + "ssh/connect");
+                window.addEventListener("message", e => {
+                    termWindow.postMessage(JSON.stringify(inputData), "*");
+                });
+                
             });
 
             $("#delete").click(function () {

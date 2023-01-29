@@ -1,14 +1,13 @@
-import base64
-import datetime
 import os
-import sys
 import json
+import uuid
 import asyncio
 import logging
-import urllib.parse
+import datetime
+
 import paramiko
 
-from fastapi import FastAPI, Request, WebSocket, Header, Depends, Body
+from fastapi import FastAPI, Request, WebSocket, Header, Depends, Body, Cookie
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -39,8 +38,17 @@ async def ssh(request: Request):
 
 
 @app.get("/ssh/connect", response_class=HTMLResponse)
-async def ssh(request: Request, ssh_id: int, name: str):
-    return templates.TemplateResponse("terminal.html", context={'request': request, 'name': name, 'publickey': rsa_key.pb_text().decode('utf8').replace('\n', '\\\n')})
+async def ssh(request: Request):
+    return templates.TemplateResponse(
+        "terminal.html",
+        context={
+            'request': request,
+            'publickey': rsa_key.pb_text().decode('utf8').replace('\n', '\\\n')
+        },
+        headers={
+            'Cookie': 'session=aaa'
+        }
+    )
 
 
 @app.get("/ssh")
@@ -83,6 +91,7 @@ async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend), body: WdtModel):
     with engine.connect() as conn:
         result = conn.execute(
             insert(tb_ssh_connect).values(
+                id=uuid.uuid4().hex,
                 name=item['name'],
                 host=item['host'],
                 port=item['port'],
@@ -139,25 +148,25 @@ async def ssh(body: DeleteSSHConnectModel):
 @app.websocket("/ssh/connect")
 async def websocket_endpoint(
         websocket: WebSocket,
-        name: str,
 
         rows: int,
         cols: int,
-        token: str = None, cryptor: CryptoDepend = Depends(CryptoDepend),
+        token: str,
+        cryptor: CryptoDepend = Depends(CryptoDepend),
 ):
     await websocket.accept()
-    password = urllib.parse.unquote(password)
-    logging.info(f'accepted host:{host}, port:{port}, user:{user}, password：{password}')
+    # print('token: ', token)
+    data = json.loads(cryptor.decrypt(token))
+    print(f'accepted {data}')
     with paramiko.SSHClient() as ssh_client:
         # ssh_client.load_system_host_keys()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            ssh_client.connect(host, port, user, password)
+            ssh_client.connect(data['host'], data['port'], data['user'], data['password'])
         except Exception as e:
             await websocket.close(reason=str(e))
             return
-        with ssh_client.invoke_shell(term='xterm') as chan:
-            chan.resize_pty(cols, rows)
+        with ssh_client.invoke_shell('xterm', cols, rows) as chan:
             # chan.setblocking(1)
             # await read_chan(websocket, chan)
             consumer_task = asyncio.create_task(read_chan(websocket, chan))
@@ -168,8 +177,8 @@ async def websocket_endpoint(
             )
             for task in pending:
                 task.cancel()
-            chan.close()
-    logging.info(f'closed host:{host}, port:{port}, user:{user}, password：{password}')
+            # chan.close()
+    print(f'closed {data}')
 
 
 async def read_chan(websocket, chan):
@@ -190,7 +199,7 @@ async def read_sock(websocket, chan):
             data = await websocket.receive_text()
         except Exception as e:
             logging.error('websocket.receive_text error', exc_info=e)
-            await websocket.close(reason=str(e))
+            # await websocket.close(reason=str(e))
             break
         event = json.loads(data)
         data = event.get('input')
