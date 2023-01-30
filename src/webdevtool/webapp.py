@@ -7,7 +7,7 @@ import datetime
 
 import paramiko
 
-from fastapi import FastAPI, Request, WebSocket, Header, Depends, Body, Cookie
+from fastapi import FastAPI, Request, WebSocket, Header, Depends, Body, Cookie, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -32,7 +32,7 @@ async def ssh(request: Request):
         "index.html",
         context={
             'request': request,
-            'publickey': rsa_key.pb_text().decode('utf8').replace('\n', '\\\n')
+            'publickey': rsa_key.pb_text.decode('utf8').replace('\n', '\\\n')
         }
     )
 
@@ -43,7 +43,7 @@ async def ssh(request: Request):
         "terminal.html",
         context={
             'request': request,
-            'publickey': rsa_key.pb_text().decode('utf8').replace('\n', '\\\n')
+            'publickey': rsa_key.pb_text.decode('utf8').replace('\n', '\\\n')
         },
         headers={
             'Cookie': 'session=aaa'
@@ -197,6 +197,8 @@ async def read_sock(websocket, chan):
     while True:
         try:
             data = await websocket.receive_text()
+        except WebSocketDisconnect:
+            break
         except Exception as e:
             logging.error('websocket.receive_text error', exc_info=e)
             # await websocket.close(reason=str(e))

@@ -1,11 +1,8 @@
-import datetime
 import random
 import base64
 from typing import Union
 
-from cryptography import x509
 from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
-from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, padding
 from cryptography.hazmat.primitives.asymmetric import rsa, padding as asy_padding
 from cryptography.hazmat.primitives.serialization import (
@@ -30,51 +27,51 @@ class RSAPrivateKey:
             self._text = key
 
     def decrypt(self, sign):
-        # return rsa.decrypt(sign, self.pv_key)
         return self._key.decrypt(sign, padding=asy_padding.PKCS1v15())
+
+    def public_key(self):
+        return self._key.public_key()
+
+    def private_bytes(self):
+        return self._key.private_bytes(Encoding.PEM, PrivateFormat.PKCS8, NoEncryption())
 
 
 class RSAPublicKey:
 
-    def __init__(self, pb_text):
-        self.pb_text = pb_text
-        # self.pb_key = rsa.PublicKey.load_pkcs1(pb_text)
-        self.pb_key = load_pem_public_key(self.pb_text)
+    def __init__(self, key: Union[rsa.RSAPublicKey, bytes]):
+        if isinstance(key, rsa.RSAPublicKey):
+            self._key = key
+            self._text = key.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo)
+        else:
+            self._key = load_pem_public_key(key)
+            self._text = key
 
     def encrypt(self, text):
-        # return rsa.encrypt(text, self.pb_key)
-        return self.pb_key.encrypt(text, padding=asy_padding.PKCS1v15())
+        return self._key.encrypt(text, padding=asy_padding.PKCS1v15())
+
+    def public_bytes(self):
+        return self._key.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo)
 
 
 class RSAKey:
 
     def __init__(self, public_exponent: int, key_size: int):
-        self.public_exponent = public_exponent
-        self.key_size = key_size
+        self._pv = rsa.generate_private_key(public_exponent, key_size)
+        self._pb = self._pv.public_key()
 
-        self.pv_key = rsa.generate_private_key(self.public_exponent, self.key_size)
-        self.pb_key = self.pv_key.public_key()
-        # self.pb_key, self.pv_key = rsa.newkeys(self.key_size, poolsize=2)
-
+    @property
     def pb_text(self):
-        # return self.pb_key.save_pkcs1()
-        return self.pb_key.public_bytes(
-            Encoding.PEM, PublicFormat.SubjectPublicKeyInfo
-        )
+        return self._pb.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo)
 
+    @property
     def pv_text(self):
-        # return self.pv_key.save_pkcs1()
-        return self.pv_key.private_bytes(
-            Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
-        )
+        return self._pv.private_bytes(Encoding.PEM, PrivateFormat.PKCS8, NoEncryption())
 
     def encrypt(self, text):
-        # return rsa.encrypt(text, self.pb_key)
-        return self.pb_key.encrypt(text, padding=asy_padding.PKCS1v15())
+        return self._pb.encrypt(text, padding=asy_padding.PKCS1v15())
 
-    def decrypt(self, sign):
-        # return rsa.decrypt(sign, self.pv_key)
-        return self.pv_key.decrypt(base64.b64decode(sign), padding=asy_padding.PKCS1v15())
+    def decrypt(self, encrypted):
+        return self._pv.decrypt(encrypted, padding=asy_padding.PKCS1v15())
 
 
 class RSAKeyPool:
@@ -88,7 +85,7 @@ class RSAKeyPool:
     def gen_keys(self):
         for _ in range(self.size):
             rk = RSAKey(65537, 2048)
-            self._keys[rk.pb_text()] = rk.pv_text()
+            self._keys[rk.pb_text] = rk.pv_text
 
     def random_choice_pb_text(self):
         return random.choice(self._kk)
