@@ -1,2 +1,2 @@
-# webdevtool
+# Pyttyd
 web developer tool
