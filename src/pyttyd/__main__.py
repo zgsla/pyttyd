@@ -1,12 +1,12 @@
 import os
 
 import uvicorn
-from webdevtool import __basepath__
+from pyttyd import __basepath__
 
 
 def main():
     uvicorn.run(
-        'webdevtool.webapp:app',
+        'pyttyd.webapp:app',
         reload=True,
         reload_dirs=__basepath__,
         # ssl_keyfile=os.path.join(__basepath__, 'ca-key.pem'),

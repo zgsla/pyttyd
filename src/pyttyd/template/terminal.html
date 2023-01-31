@@ -14,7 +14,7 @@
 <script src="{{ url_for('static', path='/js/xterm-addon-fit.js') }}"></script>
 <script src="{{ url_for('static', path='/js/jsencrypt.min.js') }}"></script>
 <script src="{{ url_for('static', path='/js/crypto-js.js') }}"></script>
-<script type="module">
+<script>
   // $(function() {
   // });
 
@@ -24,8 +24,9 @@
   var opened = false;
   var encrypt = new JSEncrypt();
   encrypt.setPublicKey('{{ publickey }}');
-  
+
   window.addEventListener('message',e => {
+    console.log(e.data)
     if (!opened){
       var data = JSON.parse(e.data);
       // xterm docs https://xtermjs.org/docs/api/terminal/classes/terminal/
@@ -97,13 +98,13 @@
         }));
         
       })
-      opened = true
+      opened = true;
+      window.opener.postMessage('success');
     }
   })
 
   window.addEventListener('load',() =>{
-    console.log('load')
-    window.opener.postMessage('子页面加载完成');
+    window.opener.postMessage('load');
 
   })
   // term.onKey(function(obj){

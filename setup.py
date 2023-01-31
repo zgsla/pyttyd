@@ -1,6 +1,6 @@
 
 from setuptools import setup
 setup(
-    name='webdevtool',
+    name='pyttyd',
     install_requires=['cryptography', 'fastapi', 'uvicorn', 'paramiko', 'websockets', 'sqlalchemy']
 )

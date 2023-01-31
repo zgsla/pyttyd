@@ -1,7 +1,7 @@
 import os
 import datetime
 
-from webdevtool import __basepath__
+from pyttyd import __basepath__
 
 from sqlalchemy import MetaData, create_engine, Table, String, Column, PrimaryKeyConstraint, TIMESTAMP, Integer
 
