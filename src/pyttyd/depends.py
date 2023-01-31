@@ -3,7 +3,7 @@ import base64
 
 from fastapi import Header, Cookie
 
-from webdevtool.crypto import rsa_key, AESCrypto
+from pyttyd.crypto import rsa_key, AESCrypto
 
 
 class CryptoDepend:

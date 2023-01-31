@@ -3,7 +3,7 @@ import json
 from fastapi import Header
 from pydantic import BaseModel, Field
 
-from webdevtool.crypto import AESCrypto, rsa_key
+from pyttyd.crypto import AESCrypto, rsa_key
 
 
 class CreateSSHConnectModel(BaseModel):

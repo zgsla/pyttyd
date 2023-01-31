@@ -13,11 +13,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import insert, update, select, delete
 
-from webdevtool import __basepath__
-from webdevtool.crypto import rsa_key
-from webdevtool.depends import CryptoDepend
-from webdevtool.schema import CreateSSHConnectModel, UpdateSSHConnectModel, DeleteSSHConnectModel, WdtModel
-from webdevtool.model import engine, tb_ssh_connect
+from pyttyd import __basepath__
+from pyttyd.crypto import rsa_key
+from pyttyd.depends import CryptoDepend
+from pyttyd.schema import CreateSSHConnectModel, UpdateSSHConnectModel, DeleteSSHConnectModel, WdtModel
+from pyttyd.model import engine, tb_ssh_connect
 
 app = FastAPI()
 

@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>WebDevTool</title>
+    <title>pyttyd</title>
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="{{ url_for('static', path='/css/bootstrap.min.css') }}">
@@ -45,7 +45,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/">WebDevTool</a>
+                <a class="navbar-brand" href="/">pyttyd</a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav nav-tabs navbar-nav" role="tablist">
@@ -66,7 +66,7 @@
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="https://github.com/zhanglaiya/webdevtool" target="_blank">源码</a></li>
+                    <li><a href="https://github.com/zhanglaiya/pyttyd" target="_blank">源码</a></li>
                     <li><a href="../navbar-static-top/">Static top</a></li>
                     <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
                 </ul>
@@ -85,62 +85,65 @@
             </p>
         </div>
         <div role="tabpanel" class="tab-pane" id="ssh">
-            <div class="col-md-2">
-                <ul class="list-group">
-                    <li class="list-group-item">新建连接</li>
-                </ul>
-            </div>
-            <div class="col-md-10">
-
-                <form class="form-horizontal" role="form">
-                    <div class="form-group hide">
-                        <label class="col-sm-2 control-label">id</label>
-                        <div class="col-sm-10">
-                            <input class="form-control" id="id" type="text">
+            <div>
+                <div class="col-md-2">
+                    <ul class="list-group">
+                        <li class="list-group-item">新建连接</li>
+                    </ul>
+                </div>
+                <div class="col-md-10">
+    
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group hide">
+                            <label class="col-sm-2 control-label">id</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" id="id" type="text">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label">连接名</label>
-                        <div class="col-sm-10">
-                            <input class="form-control" id="name" type="text">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">连接名</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" id="name" type="text">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label">主机</label>
-                        <div class="col-sm-10">
-                            <input class="form-control" id="host" type="text">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">主机</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" id="host" type="text">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label">端口</label>
-                        <div class="col-sm-10">
-                            <input class="form-control" id="port" type="text" value="22">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">端口</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" id="port" type="text" value="22">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label">用户</label>
-                        <div class="col-sm-10">
-                            <input class="form-control" id="user" type="text">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">用户</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" id="user" type="text">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="password" class="col-sm-2 control-label">密码</label>
-                        <div class="col-sm-10">
-                            <input type="password" class="form-control" id="password">
+                        <div class="form-group">
+                            <label for="password" class="col-sm-2 control-label">密码</label>
+                            <div class="input-group col-sm-10">
+                                <input type="password" class="form-control" id="password">
+                                <span class="input-group-addon">@</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <button id="save" type="button" class="btn btn-primary" data-loading-text="保存中...">保存</button>
-                            <button id="connect" type="button" class="btn btn-warning"
-                                data-loading-text="连接中...">连接</button>
-                            <button id="delete" type="button" class="btn btn-danger hide"
-                                data-loading-text="正在删除...">删除</button>
-
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <button id="save" type="button" class="btn btn-primary" data-loading-text="保存中...">保存</button>
+                                <button id="connect" type="button" class="btn btn-warning"
+                                    data-loading-text="连接中...">连接</button>
+                                <button id="delete" type="button" class="btn btn-danger hide"
+                                    data-loading-text="正在删除...">删除</button>
+    
+                            </div>
                         </div>
-                    </div>
-                </form>
-
+                    </form>
+    
+                </div>
             </div>
         </div>
         <div role="tabpanel" class="tab-pane" id="mysql">暂无</div>
@@ -159,6 +162,7 @@
     <script src="{{ url_for('static', path='/js/crypto-js.js') }}"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{{ url_for('static', path='/js/ie10-viewport-bug-workaround.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/nanoid.js') }}"></script>
     <script>
         $(function () {
 
@@ -167,6 +171,13 @@
             var publickeyUrl = "/publickey"
             var encrypt = new JSEncrypt();
             encrypt.setPublicKey('{{ publickey }}');
+            // $('#password').password().on('show.bs.password', function (e) {
+            //     console.log(e)
+            // }).on('hide.bs.password', function (e) {
+            //     console.log(e)
+            // })
+
+            
 
             function checkInput(data) {
                 var $name = $("#name");
@@ -330,18 +341,30 @@
 
             });
 
+            var terminals = new Object();
+
             $("#connect").click(function () {
                 var inputData = new Object();
+                var $btn = $(this).button('loading');
                 checkStatus = checkInput(inputData);
                 if (checkStatus === 1) {
                     return
                 }
+                var id = nanoid(32);
                 
-                termWindow = window.open(window.location.href + "ssh/connect");
-                window.addEventListener("message", e => {
-                    termWindow.postMessage(JSON.stringify(inputData), "*");
-                });
+                termWindow = window.open(window.location.href + "ssh/connect", id);
+                terminals[id] = {inputData, termWindow};
+                $btn.button('reset');
                 
+            });
+            
+            window.addEventListener("message", e => {
+                if (e.data == 'load'){
+                    terminals[e.source.name].termWindow.postMessage(JSON.stringify(terminals[e.source.name].inputData), "*");
+                }
+                else if (e.data == 'success'){
+                    delete terminals[e.source.name]
+                }
             });
 
             $("#delete").click(function () {

@@ -6,3 +6,9 @@ services:
     ports:
       - "2222:22"
     restart: always
+  test-machine2:
+    build: .
+    image: test-machine:1.0
+    ports:
+      - "2223:22"
+    restart: always
