@@ -13,10 +13,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import insert, update, select, delete
 
-from pyttyd import __basepath__
+from pyttyd import __basepath__, crud
 from pyttyd.crypto import rsa_key
-from pyttyd.depends import CryptoDepend
-from pyttyd.schema import CreateSSHConnectModel, UpdateSSHConnectModel, DeleteSSHConnectModel, WdtModel
+from pyttyd.depends import CryptoDepend, to_dict
 from pyttyd.model import engine, tb_ssh_connect
 
 app = FastAPI()
@@ -27,12 +26,13 @@ templates = Jinja2Templates(directory=f"{os.path.join(__basepath__, 'template')}
 
 
 @app.get("/", response_class=HTMLResponse)
-async def ssh(request: Request):
+async def index(request: Request):
     return templates.TemplateResponse(
         "index.html",
         context={
             'request': request,
-            'publickey': rsa_key.pb_text.decode('utf8').replace('\n', '\\\n')
+            'conns': crud.get_conns(),
+            'publickey': rsa_key.pb_text.decode('utf8')
         }
     )
 
@@ -52,26 +52,17 @@ async def ssh(request: Request):
 
 
 @app.get("/ssh")
-async def ssh(token: str = None, cryptor: CryptoDepend = Depends(CryptoDepend)):
+async def ssh(cryptor: CryptoDepend = Depends(CryptoDepend)):
     stmt = select(tb_ssh_connect)
-    if token is not None:
-        ssh_id = cryptor.decrypt(token)
+    if cryptor.token:
+        ssh_id = cryptor.decrypt(cryptor.token)
         stmt = stmt.where(
             tb_ssh_connect.c.id == ssh_id
         )
 
     with engine.connect() as conn:
         res = conn.execute(stmt)
-        data = res.fetchall() if token is None else res.fetchone()
-
-    def to_dict(row):
-        dct = {}
-        for k, v in row.items():
-            if isinstance(v, datetime.datetime):
-                dct[k] = v.strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                dct[k] = v
-        return dct
+        data = res.fetchall() if cryptor.token is None else res.fetchone()
 
     return cryptor.encrypt(
         json.dumps(
@@ -84,9 +75,9 @@ async def ssh(token: str = None, cryptor: CryptoDepend = Depends(CryptoDepend)):
 
 
 @app.post("/ssh")
-async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend), body: WdtModel):
-    print('insert ssh', body)
-    data = cryptor.decrypt(body.token)
+async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend)):
+
+    data = cryptor.decrypt(cryptor.token)
     item = json.loads(data)
     with engine.connect() as conn:
         result = conn.execute(
@@ -111,9 +102,8 @@ async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend), body: WdtModel):
 
 
 @app.put("/ssh")
-async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend), body: WdtModel):
-    print('update ssh', body)
-    data = cryptor.decrypt(body.token)
+async def ssh(cryptor: CryptoDepend = Depends(CryptoDepend)):
+    data = cryptor.decrypt(cryptor.token)
     item = json.loads(data)
 
     with engine.connect() as conn:
@@ -136,10 +126,12 @@ async def ssh(*, cryptor: CryptoDepend = Depends(CryptoDepend), body: WdtModel):
 
 
 @app.delete("/ssh")
-async def ssh(body: DeleteSSHConnectModel):
-    print('delete ssh', body.ssh_id)
+async def ssh(cryptor=Depends(CryptoDepend)):
+    # print('delete ssh', cryptor.token)
+    data = cryptor.decrypt(cryptor.token)
+    item = json.loads(data)
     with engine.connect() as conn:
-        conn.execute(delete(tb_ssh_connect).where(tb_ssh_connect.c.id == body.ssh_id))
+        conn.execute(delete(tb_ssh_connect).where(tb_ssh_connect.c.id == item['id']))
     return {
         "code": 0
     }
