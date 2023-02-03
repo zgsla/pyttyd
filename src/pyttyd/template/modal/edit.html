@@ -1,0 +1,81 @@
+
+<div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close btn btn-sm" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h6 class="modal-title" id="exampleModalLabel">编辑连接</h6>
+            </div>
+            <div class="modal-body">
+                <form class="form-sm form-horizontal" id="editForm">
+                    <div class="form-group hide">
+                        <label class="col-sm-2 control-label">id</label>
+                        <div class="col-sm-10">
+                            <input class="form-control" id="id" type="text">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-2 control-label">连接名</label>
+                        <div class="col-sm-10">
+                            <input class="form-control name" name="name" type="text">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-2 control-label">主机</label>
+                        <div class="col-sm-10">
+                            <input class="form-control host" name="host" type="text">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-2 control-label">端口</label>
+                        <div class="col-sm-10">
+                            <input class="form-control port" name="port" type="text" value="22">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-2 control-label" for="user">用户</label>
+                        <div class="col-sm-10">
+                            <input class="form-control user" name="user" type="text">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="password" class="col-sm-2 control-label">密码</label>
+                        <div class="col-sm-10">
+                            <div class="input-group">
+                                <input type="password" class="form-control password" name="password">
+                                <div class="input-group-btn">
+                                    <!-- <button type="button" class="btn">action</button> -->
+                                    <button type="button" class="btn btn-sm btn-default show-hide-password"
+                                        data-toggle="tooltip" data-placement="top" title="显示密码" data-show="1">
+                                        <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="button" class="btn btn-sm btn-default save"
+                                data-loading-text="保存中..." data-toggle="tooltip" data-placement="top" title="保存">
+                                <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-default console"
+                                data-loading-text="连接中..." data-toggle="tooltip" data-placement="top" title="连接">
+                                <span class="glyphicon glyphicon-console" aria-hidden="true"></span>
+                            </button>
+                            <button id="delete" type="button" class="btn btn-sm btn-default"
+                                data-loading-text="正在删除..." data-toggle="tooltip" data-placement="top" title="删除">
+                                <span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- <div class="modal-footer"> 
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Send message</button>
+        </div> -->
+        </div>
+    </div>
+</div>

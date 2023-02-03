@@ -21,8 +21,9 @@ class CryptoDepend:
 
         if not encrypted:
             raise ValueError
-
+        print(base64.b64decode(encrypted))
         aes = json.loads(rsa_key.decrypt(base64.b64decode(encrypted)).decode('utf8'))
+        print(aes)
         self._token = token if token else body.token if body else None
 
         self._cryptor = AESCrypto(

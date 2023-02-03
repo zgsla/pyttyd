@@ -43,10 +43,7 @@ async def ssh(request: Request):
         "terminal.html",
         context={
             'request': request,
-            'publickey': rsa_key.pb_text.decode('utf8').replace('\n', '\\\n')
-        },
-        headers={
-            'Cookie': 'session=aaa'
+            'publickey': rsa_key.pb_text.decode('utf8')
         }
     )
 
