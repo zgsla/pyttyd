@@ -1,12 +1,12 @@
 // import './jquery.min.js'
 // import './bootstrap.min.js'
-// import './jsencrypt.min.js'
+import {Encryptor} from './crypt.js'
 
 $(function () {
     var sshCRUDUrl = "/ssh";
     var connectUrl = "/ssh/connect";
     var publickeyUrl = "/publickey"
-    
+
     loadSSHList();
     // $('#password').password().on('show.bs.password', function (e) {
     //     console.log(e)
@@ -119,16 +119,16 @@ $(function () {
                         $('#ssh-list').append(
                             `<li>
                                 <div class="btn-group" data-id=` + item.id + ` data-name=` + item.name + ` data-host=` + item.host + ` data-port=` + item.port + ` data-user=` + item.user + ` data-password=` + item.password + `>
-                                    <button type="button" class="btn btn-xs">
-                                        <span class="glyphicon glyphicon-file"></span>&nbsp;` + item.name +
-                                    `</button>
-                                    <button type="button" class="btn btn-default btn-xs edit" data-toggle="modal" data-toggle="tooltip" data-target="#edit" data-placement="top" title="编辑">
+                                    <button type="button" class="btn btn-xs conn" data-toggle="tooltip" data-placement="top" title="`+ item.name +`">
+                                        <span class="glyphicon glyphicon-file"></span>&nbsp;` + item.name + `
+                                    </button>
+                                    <button type="button" class="btn btn-default btn-xs edit hide" data-toggle="modal" data-toggle="tooltip" data-target="#edit" data-placement="top" title="编辑">
                                         <span class="glyphicon glyphicon-edit"></span>
                                     </button>
-                                    <button type="button" class="btn btn-default btn-xs csl" data-toggle="tooltip" data-placement="top" title="连接">
+                                    <button type="button" class="btn btn-default btn-xs csl hide" data-toggle="tooltip" data-placement="top" title="连接">
                                         <span class="glyphicon glyphicon-console"></span>
                                     </button>
-                                    <button type="button" class="btn btn-default btn-xs trash" data-toggle="tooltip" data-placement="top" title="删除">
+                                    <button type="button" class="btn btn-default btn-xs trash hide" data-toggle="tooltip" data-placement="top" title="删除">
                                         <span class="glyphicon glyphicon-trash"></span>
                                     </button>
                                 </div>
@@ -231,21 +231,10 @@ $(function () {
         var id = nanoid(32);
         var sshInfo = conn.user + '@' + conn.host + ':' + conn.port
         var newli = `
-        <li role="presentation" class="active">
-            <a style="padding: 2px 10px 0 5px;" href="#` + id + `" aria-controls="`+ id +`" role="tab" data-toggle="tab">
-                <span style="width: 50px; overflow: hidden; text-overflow: ellipsis;" class="glyphicon glyphicon-tag">`+conn.name+`</span>
-            </a>
+        <li style="padding: 0;" role="presentation" class="active col-md-1" data-toggle="tooltip" data-placement="top" title="` + conn.name + `">
+            <a style="padding: 6px 0 4px 0;; overflow: hidden; text-overflow: ellipsis;" href="#` + id + `" aria-controls="`+ id +`" role="tab" data-toggle="tab">`+conn.name+`</span></a>
         </li>`
-        // <div class="btn-group" data-id>
-        //     <button type="button" class="btn btn-success btn-xs btn-tab" data-toggle="tooltip" data-placement="top" title="`+ sshInfo + `">
-        //         <span class="glyphicon glyphicon-tag"></span>
-        //         <span>`+ conn.name +`</span>
-        //     </button>
-        //     <button type="button" class="btn btn-danger btn-xs trash hide" data-toggle="tooltip"
-        //         data-placement="top" title="关闭">
-        //         <span class="glyphicon glyphicon-remove"></span>
-        //     </button>
-        // </div>
+
         $('.nav-tabs li').each(function (i, e) {
             $(e).removeClass('active')
             $(e).find('button').eq(0).removeClass('btn-success')
@@ -258,6 +247,8 @@ $(function () {
         })
         var newdiv = `<div role="tabpanel" class="tab-pane active" id=` + id + `><div id="terminal-`+ id + `"></div></div>`;
         $('.tab-content').append(newdiv);
+
+        document.getElementById('terminal-' + id).style.height = (window.innerHeight * 0.7) + 'px';
 
         const term = new Terminal({
             cursorStyle: 'underline',  //光标样式
@@ -299,6 +290,12 @@ $(function () {
             ws.send(JSON.stringify({"input": s}))
         });
 
+        window.onresize = function () {
+            document.getElementById('terminal-' + id).style.height = (window.innerHeight * 0.7) + 'px';
+            // document.getElementById('terminal').style.width = window.innerWidth + 'px';
+            fitAddon.fit();
+        }
+
         term.onResize(function (size) {
             ws.send(JSON.stringify({
             'resize': [size.cols, size.rows]
@@ -307,10 +304,27 @@ $(function () {
         $btn.button('reset');
     })
 
+    $('#ssh-list').on('mouseover', '.conn', function () {
+        $(this).siblings('button').each(function (i, e) {
+            $(e).removeClass('hide');
+        })
+    })
+    $('#ssh-list').on('click', '.conn', function () {
+        var conn = $(this).parent().data();
+    })
+    $('#ssh-list').on('mouseleave', 'li', function () {
+        $(this).find('button').each(function (i, e) {
+            if (i !== 0){
+                $(e).addClass('hide');
+            }
+        })
+    })
+
     window.addEventListener("message", e => {
         if (e.data == 'load') {
             terminals[e.source.name].termWindow.postMessage(JSON.stringify(terminals[e.source.name].data), "*");
         }
+        console.log(e);
         // else if (e.data == 'unload') {
         //     delete terminals[e.source.name]
         // }
@@ -350,13 +364,12 @@ $(function () {
                     if (res.code == 0) {
                         $btn.button('reset');
                         // $('#ssh div[class~=form-group]').removeClass('has-error')
-                        loadSSHList();
                         $("#edit").modal('hide');
+                        loadSSHList();
                     }
                 }
             });
         }
-
     });
 
     $("#ssh ul").on('click', 'li', function () {

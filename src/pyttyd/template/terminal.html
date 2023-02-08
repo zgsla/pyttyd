@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/xterm.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/img/favicon.ico') }}">
 </head>
 <body>
   <div class="container-fruid">
@@ -14,8 +15,8 @@
 <script src="{{ url_for('static', path='/js/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', path='/js/xterm.js') }}"></script>
 <script src="{{ url_for('static', path='/js/xterm-addon-fit.js') }}"></script>
-<script src="{{ url_for('static', path='/js/jsencrypt.min.js') }}"></script>
+<!-- <script src="{{ url_for('static', path='/js/jsencrypt.min.js') }}"></script> -->
 <script src="{{ url_for('static', path='/js/crypto-js.js') }}"></script>
-<script src="{{ url_for('static', path='/js/crypt.js') }}"></script>
-<script src="{{ url_for('static', path='/js/terminal.js') }}"></script>
+<!-- <script src="{{ url_for('static', path='/js/crypt.js') }}"></script> -->
+<script type="module" src="{{ url_for('static', path='/js/terminal.js') }}"></script>
 </html>
