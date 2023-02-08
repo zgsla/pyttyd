@@ -174,6 +174,7 @@ async def read_chan(websocket, chan):
     while not chan.closed:
         try:
             data = await asyncio.to_thread(chan.recv, 1024)
+            print('chan.recv: ', data)
         except Exception as e:
             logging.error('chan.recv error', exc_info=e)
             await websocket.close(reason=str(e))
@@ -186,6 +187,7 @@ async def read_sock(websocket, chan):
     while True:
         try:
             data = await websocket.receive_text()
+            print(data)
         except WebSocketDisconnect:
             break
         except Exception as e:
@@ -195,7 +197,7 @@ async def read_sock(websocket, chan):
         event = json.loads(data)
         data = event.get('input')
         if data:
-            await asyncio.to_thread(chan.send, data)
+            chan.send(data)
         size = event.get('resize')
         if size:
-            await asyncio.to_thread(chan.resize_pty, *size)
+            chan.resize_pty(*size)
