@@ -17,6 +17,7 @@ from pyttyd import __basepath__, crud
 from pyttyd.crypto import rsa_key
 from pyttyd.depends import CryptoDepend, to_dict
 from pyttyd.model import engine, tb_ssh_connect
+from pyttyd.terminal import Terminal
 
 app = FastAPI()
 
@@ -140,64 +141,11 @@ async def websocket_endpoint(
 
         rows: int,
         cols: int,
-        token: str,
         cryptor: CryptoDepend = Depends(CryptoDepend),
 ):
     await websocket.accept()
     # print('token: ', token)
-    data = json.loads(cryptor.decrypt(token))
+    data = cryptor.json()
     print(f'accepted {data}')
-    with paramiko.SSHClient() as ssh_client:
-        # ssh_client.load_system_host_keys()
-        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        try:
-            ssh_client.connect(data['host'], data['port'], data['user'], data['password'])
-        except Exception as e:
-            await websocket.close(reason=str(e))
-            return
-        with ssh_client.invoke_shell('xterm', cols, rows) as chan:
-            # chan.setblocking(1)
-            # await read_chan(websocket, chan)
-            consumer_task = asyncio.create_task(read_chan(websocket, chan))
-            producer_task = asyncio.create_task(read_sock(websocket, chan))
-            done, pending = await asyncio.wait(
-                [consumer_task, producer_task],
-                return_when=asyncio.FIRST_COMPLETED,
-            )
-            for task in pending:
-                task.cancel()
-            # chan.close()
-    print(f'closed {data}')
-
-
-async def read_chan(websocket, chan):
-    while not chan.closed:
-        try:
-            data = await asyncio.to_thread(chan.recv, 1024)
-            print('chan.recv: ', data)
-        except Exception as e:
-            logging.error('chan.recv error', exc_info=e)
-            await websocket.close(reason=str(e))
-            break
-        if data:
-            await websocket.send_text(data.decode('utf8'))
-
-
-async def read_sock(websocket, chan):
-    while True:
-        try:
-            data = await websocket.receive_text()
-            print(data)
-        except WebSocketDisconnect:
-            break
-        except Exception as e:
-            logging.error('websocket.receive_text error', exc_info=e)
-            # await websocket.close(reason=str(e))
-            break
-        event = json.loads(data)
-        data = event.get('input')
-        if data:
-            chan.send(data)
-        size = event.get('resize')
-        if size:
-            chan.resize_pty(*size)
+    with Terminal(websocket=websocket, conn=data, rows=rows, cols=cols) as term:
+        await term.join()

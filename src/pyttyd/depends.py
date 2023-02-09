@@ -21,9 +21,9 @@ class CryptoDepend:
 
         if not encrypted:
             raise ValueError
-        print(base64.b64decode(encrypted))
+        # print(base64.b64decode(encrypted))
         aes = json.loads(rsa_key.decrypt(base64.b64decode(encrypted)).decode('utf8'))
-        print(aes)
+        # print(aes)
         self._token = token if token else body.token if body else None
 
         self._cryptor = AESCrypto(
@@ -34,6 +34,13 @@ class CryptoDepend:
     @property
     def token(self):
         return self._token
+
+    @property
+    def source(self):
+        return self.decrypt(self._token)
+
+    def json(self):
+        return json.loads(self.source)
 
     def decrypt(self, encrypted):
         return self._cryptor.decrypt(encrypted)
