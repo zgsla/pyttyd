@@ -12,3 +12,9 @@ services:
     ports:
       - "2223:22"
     restart: always
+  test-machine3:
+    build: ./nopam
+    image: test-machine_nopam:1.0
+    ports:
+      - "2224:22"
+    restart: always

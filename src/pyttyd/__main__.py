@@ -6,7 +6,7 @@ from pyttyd import __basepath__
 
 def main():
     uvicorn.run(
-        'pyttyd.webapp:app',
+        'pyttyd.app:app',
         reload=True,
         reload_dirs=__basepath__,
         # ssl_keyfile=os.path.join(__basepath__, 'ca-key.pem'),

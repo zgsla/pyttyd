@@ -18,7 +18,6 @@
     <!-- Custom styles for this template -->
     <link rel="stylesheet" href="{{ url_for('static', path='/css/navbar-fixed-top.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/xterm.css') }}">
-
 </head>
 
 <body>
@@ -37,121 +36,8 @@
             </div>
         </div>
     </nav>
-    <div class="container-fruid">
-        <div class="col-md-offset-2">
-            <p class="text-warning">ssh://root@127.0.0.1:2222</p>
-        </div>
-        <!-- <div class="col-sm-offset-3">
-            <input type="button" value="">
-        </div> -->
-
-        <div>
-            <div class="col-md-2">
-                <div>
-                    <button class="btn btn-xs">
-                        <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;全部连接
-                    </button>
-                    <button class="btn btn-xs" data-toggle="modal" data-toggle="tooltip" data-placement="top" title="新建连接"
-                        data-target="#new">
-                        <span class="glyphicon glyphicon-plus"></span>
-                    </button>
-                    <button class="btn btn-xs" data-toggle="tooltip" data-placement="top" title="刷新列表">
-                        <span class="glyphicon glyphicon-refresh"></span>
-                    </button>
-                </div>
-                <hr style="margin: 0 0 2px 0;">
-                <div>
-                    <ul style="list-style: none outside url('./static/img/link2.png')" id="ssh-list">
-                        <!-- {% for conn in conns %}
-                        <li>
-                            <div class="btn-group" data-id="{{ conn.id }}">
-                                <button type="button" class="btn btn-xs">
-                                    <span class="glyphicon glyphicon-file"></span>&nbsp;{{ conn.name }}
-                                </button>
-                                <button type="button" class="btn btn-default btn-xs edit" data-toggle="modal"
-                                    data-toggle="tooltip" data-target="#edit" data-placement="top" title="编辑">
-                                    <span class="glyphicon glyphicon-edit"></span>
-                                </button>
-                                <button type="button" class="btn btn-default btn-xs console" data-toggle="tooltip"
-                                    data-placement="top" title="连接">
-                                    <span class="glyphicon glyphicon-console"></span>
-                                </button>
-                                <button type="button" class="btn btn-default btn-xs trash" data-toggle="tooltip"
-                                    data-placement="top" title="删除">
-                                    <span class="glyphicon glyphicon-trash"></span>
-                                </button>
-                            </div>
-                        </li>
-                        {% endfor %} -->
-                    </ul>
-                </div>
-                <!-- <ul class="pagination pagination-sm">
-                    <li class="previous disabled">
-                      <a href="#" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                      </a>
-                    </li>
-                    <li><a href="#">1</a></li>
-                    <li>
-                      <a href="#" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                      </a>
-                    </li>
-                  </ul> -->
-            </div>
-            <div class="col-md-8" style="padding: 0;">
-                <div>
-                    <!-- Nav tabs -->
-                    <ul class="nav nav-tabs" role="tablist">
-                        
-                        <li role="presentation">
-                            <button class="btn btn-xs btn-default" data-toggle="modal" data-toggle="tooltip" data-placement="top" title="新建连接"
-                                data-target="#new">
-                                <span class="glyphicon glyphicon-plus"></span>
-                            </button>
-                        </li>
-                    </ul>
-                    <!-- <hr style="margin: 0 0 2px 0;"> -->
-                    <!-- Tab panes -->
-                    <div id="tab-content" class="tab-content">
-                        
-                    </div>
-                </div>
-
-            </div>
-            <div class="col-md-2">
-                <table class="table table-striped table-bordered">
-                    <tr>
-                        <td class="col-md-5">连接名</td>
-                        <td>1</td>
-                    </tr>
-                    <tr>
-                        <td>主机</td>
-                        <td>127.0.0.1</td>
-                    </tr>
-                    <tr>
-                        <td>端口</td>
-                        <td>22</td>
-                    </tr>
-                    <tr>
-                        <td>用户</td>
-                        <td>root</td>
-                    </tr>
-                    <tr>
-                        <td>密码</td>
-                        <td>******</td>
-                    </tr>
-                    <tr>
-                        <td>创建时间</td>
-                        <td>******</td>
-                    </tr>
-                    <tr>
-                        <td>更新时间</td>
-                        <td>******</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+    <div class="container">
+        {% include 'content2.html'  %}
         <!-- Main component for a primary marketing message or call to action -->
     </div> <!-- /container -->
     {% include 'modal/new.html'  %}
