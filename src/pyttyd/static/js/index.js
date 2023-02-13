@@ -8,11 +8,7 @@ $(function () {
     var publickeyUrl = "/publickey"
 
     loadSSHList();
-    // $('#password').password().on('show.bs.password', function (e) {
-    //     console.log(e)
-    // }).on('hide.bs.password', function (e) {
-    //     console.log(e)
-    // })
+    
     // 修改terminal的高度为body的高度
     // document.getElementById('terminal').style.height = (window.innerHeight * 0.8) + 'px';
     
@@ -37,9 +33,8 @@ $(function () {
                 'auth': enc.auth
             },
             success: function (res) {
-                var data = enc.decrypt(res);
-                if (data.code == 0) {
-                    var item = data.data;
+                if (res.code == 0) {
+                    var item = enc.decrypt(res.data);
                     modal.find("#id").val(item.id);
                     modal.find(".name").val(item.name);
                     modal.find(".host").val(item.host);
@@ -49,10 +44,6 @@ $(function () {
                 }
             }
         });
-    })
-
-    $('.trash').click(function (e) {
-        var id = $(e.currentTarget.parentNode).data('id');
     })
 
     $('.show-hide-password').click(function (e) {
@@ -102,70 +93,47 @@ $(function () {
         return result;
     }
 
-    function loadSSHList() {
+    function loadSSHList(q) {
+        var url = q? sshCRUDUrl + '?q=' + q: sshCRUDUrl;
         var enc = Encryptor();
         $.ajax({
-            url: sshCRUDUrl,
+            url: url,
             type: "GET",
             headers: {
                 'auth': enc.auth
             },
             success: function (res) {
-                var data = enc.decrypt(res)
-                if (data.code == 0) {
+                
+                if (res.code == 0) {
+                    var data = enc.decrypt(res.data)
                     $('#ssh-list').html('');
-                    $.each(data.data, function (i, item) {
+                    $.each(data, function (i, item) {
                         // $('#ssh ul').append('<li class="list-group-item" data-id="' + item.id + '">' + item.name + '</li>')
                         $('#ssh-list').append(
-                            `<li>
-                                <div class="btn-group" data-id=` + item.id + ` data-name=` + item.name + ` data-host=` + item.host + ` data-port=` + item.port + ` data-user=` + item.user + ` data-password=` + item.password + `>
-                                    <button type="button" class="btn btn-xs conn" data-toggle="tooltip" data-placement="top" title="`+ item.name +`">
-                                        <span class="glyphicon glyphicon-file"></span>&nbsp;` + item.name + `
-                                    </button>
-                                    <button type="button" class="btn btn-default btn-xs edit hide" data-toggle="modal" data-toggle="tooltip" data-target="#edit" data-placement="top" title="编辑">
-                                        <span class="glyphicon glyphicon-edit"></span>
-                                    </button>
-                                    <button type="button" class="btn btn-default btn-xs csl hide" data-toggle="tooltip" data-placement="top" title="连接">
-                                        <span class="glyphicon glyphicon-console"></span>
-                                    </button>
-                                    <button type="button" class="btn btn-default btn-xs trash hide" data-toggle="tooltip" data-placement="top" title="删除">
-                                        <span class="glyphicon glyphicon-trash"></span>
-                                    </button>
+                            `<div class="col-md-3">
+                                <div class="ssh-item" style="padding-bottom: 20px;">
+                                    <div class="btn-group" data-id=` + item.id + ` data-name=` + item.name + ` data-host=` + item.host + ` data-port=` + item.port + ` data-user=` + item.user + ` data-password=` + item.password + `>
+                                        <button type="button" class="btn conn btn-sm">
+                                            <span class="glyphicon glyphicon-grain"></span><span>` + item.ellipsis + `</span>
+                                        </button>
+                                        <button type="button" class="btn btn-default btn-sm edit" data-toggle="modal" data-toggle="tooltip" data-target="#edit" data-placement="top" title="编辑">
+                                            <span class="glyphicon glyphicon-edit"></span>
+                                        </button>
+                                        <button type="button" class="btn btn-default btn-sm csl" data-toggle="tooltip" data-placement="top" title="连接">
+                                            <span class="glyphicon glyphicon-console"></span>
+                                        </button>
+                                        <button type="button" class="btn btn-default btn-sm trash" data-toggle="tooltip" data-placement="top" title="删除">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </li>`
+                            </div>`
                         )
                     })
                 }
             }
         });
     }
-
-    function parseParam(param, key) {
-        var paramStr = "";
-        if (param instanceof String || param instanceof Number || param instanceof Boolean) {
-            paramStr += "&" + key + "=" + encodeURIComponent(param);
-        } else {
-            $.each(param, function (i) {
-                var k = key == null ? i : key + (param instanceof Array ? "[" + i + "]" : "." + i);
-                paramStr += '&' + parseParam(this, k);
-            });
-        }
-        return paramStr.substr(1);
-    };
-
-    $('#navbar ul[role="tablist"] a').click(function (e) {
-        e.preventDefault()
-        $(this).tab('show')
-        // if (!e.target.parentElement.parentElement.getAttribute('class').includes('navbar-right')){
-        // }
-    })
-
-    // $('#navbar ul[role="tablist"] a').on('shown.bs.tab', function (e) {
-    //     var ariaControls = e.target.getAttribute('aria-controls')
-    //     if (ariaControls === 'ssh') {
-    //         loadSSHList();
-    //     }
-    // })
 
     $(".save").click(function () {
         var modal = $(this).parentsUntil('.modal')
@@ -194,8 +162,7 @@ $(function () {
             },
             contentType: "application/json; charset=utf-8",
             success: function (res) {
-                var data = enc.decrypt(res);
-                if (data.code == 0) {
+                if (res.code == 0) {
                     $btn.button('reset');
                     $('#ssh div[class~=form-group]').removeClass('has-error')
                     loadSSHList();
@@ -224,10 +191,157 @@ $(function () {
 
     });
 
+    
+
     $(document).on('click', '.csl', function () {
 
         var conn = $(this).parent().data()
         var $btn = $(this).button('loading');
+        var id = nanoid(32);
+        var termWindow = window.open(window.location.href + "ssh/connect", id);
+        terminals[id] = { data: conn, termWindow };
+        $btn.button('reset');
+    })
+
+    $(document).on('click', '.trash', function () {
+
+        var conn = $(this).parent().data()
+        var $btn = $(this).button('loading');
+
+        
+        if (conn.id){
+            if (confirm('将删除 ' + conn.name + '(' + conn.user + '@' + conn.host + ':' + conn.port + ')'))
+            {
+                deleteSSH(conn.id);
+                console.log('delete ' + JSON.stringify(conn))
+            }
+            else{
+                console.log('cancel')
+            }
+        }
+        $btn.button('reset');
+    })
+
+    $('#ssh-list').on('mouseover', '.conn', function () {
+        $(this).siblings('button').each(function (i, e) {
+            $(e).removeClass('hide');
+        })
+    })
+    $('#ssh-list').on('click', '.conn', function () {
+        var conn = $(this).parent().data();
+    })
+    $('#ssh-list').on('mouseleave', 'div', function () {
+        $(this).find('button').each(function (i, e) {
+            if (i !== 0){
+                $(e).addClass('hide');
+            }
+        })
+    })
+
+    window.addEventListener("message", e => {
+        if (e.data == 'load') {
+            terminals[e.source.name].termWindow.postMessage(JSON.stringify(terminals[e.source.name].data), "*");
+        }
+        console.log(e);
+        // else if (e.data == 'unload') {
+        //     delete terminals[e.source.name]
+        // }
+    });
+
+    $("#delete").click(function () {
+        var modal = $(this).parentsUntil('.modal')
+        var id = modal.find('#id').val();
+        if (id) {
+            deleteSSH(id);
+        }
+    });
+
+    function deleteSSH(id) {
+        var enc = Encryptor();
+        var token = enc.encrypt(JSON.stringify({ id }))
+        
+        var $btn = $(this).button('loading');
+        $.ajax({
+            url: sshCRUDUrl,
+            type: 'DELETE',
+            data: JSON.stringify({ token }),
+            dataType: "json",
+            headers: {
+                'auth': enc.auth,
+            },
+            contentType: "application/json; charset=utf-8",
+            success: function (res) {
+                if (res.code == 0) {
+                    $btn.button('reset');
+                    // $('#ssh div[class~=form-group]').removeClass('has-error')
+                    $("#edit").modal('hide');
+                    loadSSHList();
+                }
+            }
+        });
+    }
+
+    $("#search").click(function () {
+        var searchText = $("#searchText").val();
+        loadSSHList(searchText);
+    });
+
+    $('#searchText').bind('keydown', function (event) {
+        if(event.keyCode == "13")    
+        {
+            var searchText = $("#searchText").val();
+            loadSSHList(searchText);
+        }
+    })
+
+    $("#ssh ul").on('click', 'li', function () {
+        $("#ssh li").removeClass('active');
+        this.setAttribute('class', this.getAttribute('class') + ' active');
+        $('#ssh div[class~=form-group]').removeClass('has-error')
+        var id = this.getAttribute('data-id')
+        if (id) {
+            // var $p = $('<p id="name" class="form-control-static" style="text-indent: 12px;"></p>')
+            // $('#name').replaceWith($p)
+            $("#id").val(id);
+            $("#delete").removeClass('hide')
+
+            var enc = Encryptor();
+
+            var url = sshCRUDUrl + '?token=' + encodeURIComponent(enc.encrypt(id))
+            $.ajax({
+                url,
+                type: "GET",
+                headers: {
+                    'auth': enc.auth
+                },
+                success: function (res) {
+                    var data = enc.decrypt(res);
+                    if (data.code == 0) {
+                        var item = data.data;
+                        $("#name").val(item.name);
+                        $("#host").val(item.host);
+                        $("#port").val(item.port);
+                        $("#user").val(item.user);
+                        $("#password").val(item.password);
+                    }
+                }
+            });
+
+        } else {
+            // var $input = $('<input class="form-control" id="name" type="text">')
+            // $('#name').replaceWith($input).val('');
+
+            $("#id").val('');
+            $("#name").val('');
+            $("#host").val('');
+            $("#port").val('22');
+            $("#user").val('');
+            $("#password").val('');
+            $("#delete").addClass('hide');
+        }
+    });
+
+    function openTab(conn) {
         var id = nanoid(32);
         var sshInfo = conn.user + '@' + conn.host + ':' + conn.port
         var newli = `
@@ -301,121 +415,5 @@ $(function () {
             'resize': [size.cols, size.rows]
             }));
         })
-        $btn.button('reset');
-    })
-
-    $('#ssh-list').on('mouseover', '.conn', function () {
-        $(this).siblings('button').each(function (i, e) {
-            $(e).removeClass('hide');
-        })
-    })
-    $('#ssh-list').on('click', '.conn', function () {
-        var conn = $(this).parent().data();
-    })
-    $('#ssh-list').on('mouseleave', 'li', function () {
-        $(this).find('button').each(function (i, e) {
-            if (i !== 0){
-                $(e).addClass('hide');
-            }
-        })
-    })
-
-    window.addEventListener("message", e => {
-        if (e.data == 'load') {
-            terminals[e.source.name].termWindow.postMessage(JSON.stringify(terminals[e.source.name].data), "*");
-        }
-        console.log(e);
-        // else if (e.data == 'unload') {
-        //     delete terminals[e.source.name]
-        // }
-    });
-
-    $("#delete").click(function () {
-        var id = $("#id").val();
-        var aesKey = CryptoJS.lib.WordArray.random(32);
-        var aesIV = CryptoJS.lib.WordArray.random(16);
-        var aesPass = JSON.stringify({
-            'key': aesKey.toString(CryptoJS.enc.Base64),
-            'iv': aesIV.toString(CryptoJS.enc.Base64)
-        })
-        var aesPassEncrypted = encrypt.encrypt(aesPass);
-        var encrypted = CryptoJS.AES.encrypt(
-            CryptoJS.enc.Utf8.parse(JSON.stringify({ id })),
-            aesKey,
-            {
-                iv: aesIV,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            }
-        );
-        var token = CryptoJS.enc.Base64.stringify(encrypted.ciphertext)
-        if (id) {
-            var $btn = $(this).button('loading');
-            $.ajax({
-                url: sshCRUDUrl,
-                type: 'DELETE',
-                data: JSON.stringify({ token }),
-                dataType: "json",
-                headers: {
-                    'auth': aesPassEncrypted,
-                },
-                contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    if (res.code == 0) {
-                        $btn.button('reset');
-                        // $('#ssh div[class~=form-group]').removeClass('has-error')
-                        $("#edit").modal('hide');
-                        loadSSHList();
-                    }
-                }
-            });
-        }
-    });
-
-    $("#ssh ul").on('click', 'li', function () {
-        $("#ssh li").removeClass('active');
-        this.setAttribute('class', this.getAttribute('class') + ' active');
-        $('#ssh div[class~=form-group]').removeClass('has-error')
-        var id = this.getAttribute('data-id')
-        if (id) {
-            // var $p = $('<p id="name" class="form-control-static" style="text-indent: 12px;"></p>')
-            // $('#name').replaceWith($p)
-            $("#id").val(id);
-            $("#delete").removeClass('hide')
-
-            var enc = Encryptor();
-
-            var url = sshCRUDUrl + '?token=' + encodeURIComponent(enc.encrypt(id))
-            $.ajax({
-                url,
-                type: "GET",
-                headers: {
-                    'auth': enc.auth
-                },
-                success: function (res) {
-                    var data = enc.decrypt(res);
-                    if (data.code == 0) {
-                        var item = data.data;
-                        $("#name").val(item.name);
-                        $("#host").val(item.host);
-                        $("#port").val(item.port);
-                        $("#user").val(item.user);
-                        $("#password").val(item.password);
-                    }
-                }
-            });
-
-        } else {
-            // var $input = $('<input class="form-control" id="name" type="text">')
-            // $('#name').replaceWith($input).val('');
-
-            $("#id").val('');
-            $("#name").val('');
-            $("#host").val('');
-            $("#port").val('22');
-            $("#user").val('');
-            $("#password").val('');
-            $("#delete").addClass('hide');
-        }
-    });
+    }
 });

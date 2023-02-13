@@ -1,5 +1,6 @@
 import json
 import asyncio
+import logging
 import paramiko
 
 from fastapi import WebSocketDisconnect
@@ -10,14 +11,18 @@ encodingmap = {
     'UTF-8': 'utf8'
 }
 
+
 class Terminal(paramiko.SSHClient):
 
-    def __init__(self, websocket, conn, rows, cols, *args, **kwargs):
-        paramiko.SSHClient.__init__(self, *args, **kwargs)
-        self.rows = rows
-        self.cols = cols
-        self.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    def __init__(self, websocket, conn, rows, cols):
+
+        super(Terminal, self).__init__()
+
+        self._rows = rows
+        self._cols = cols
         self._ws = websocket
+
+        self.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.connect(conn['host'], conn['port'], conn['user'], conn['password'])
         _, stdout, _ = self.exec_command('$SHELL -ilc "locale charmap"')
         charmap = stdout.read().decode().strip()
@@ -25,7 +30,7 @@ class Terminal(paramiko.SSHClient):
         self._encoding = encodingmap.get(charmap, default_encoding)
 
     async def join(self):
-        with self.invoke_shell('xterm', self.cols, self.rows) as chan:
+        with self.invoke_shell('xterm', self._cols, self._rows) as chan:
             # chan.setblocking(1)
             # await read_chan(websocket, chan)
             consumer_task = asyncio.create_task(self.read_chan(chan))
