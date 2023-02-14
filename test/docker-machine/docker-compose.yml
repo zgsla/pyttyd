@@ -18,3 +18,9 @@ services:
     ports:
       - "2224:22"
     restart: always
+  test-machine4:
+    build: ./python39
+    image: test-machine_python39:1.0
+    ports:
+      - "2225:22"
+    restart: always

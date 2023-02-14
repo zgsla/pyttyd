@@ -10,7 +10,7 @@ metadata = MetaData()
 
 engine = create_engine(
     f'sqlite:///{os.path.join(__basepath__, "sqlite.db")}',
-    echo=True,
+    echo=False,
     pool_recycle=120,
     implicit_returning=False
 )
