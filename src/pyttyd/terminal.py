@@ -5,11 +5,7 @@ import paramiko
 
 from fastapi import WebSocketDisconnect
 
-default_encoding = 'utf8'
-encodingmap = {
-    'GBK': 'gbk',
-    'UTF-8': 'utf8'
-}
+from pyttyd.common import encodingmap, default_encoding
 
 
 class Terminal(paramiko.SSHClient):

@@ -29,7 +29,7 @@ window.addEventListener('message', ev => {
         document.cookie = 'session=' + enc.auth + '; path=/';
 
         document.title = conn.name ? conn.name + '(' + conn.user + '@' + conn.host + ':' + conn.port + ')': conn.user + '@' + conn.host + ':' + conn.port
-        var ws = new WebSocket("ws://127.0.0.1:8000/ssh/connect?token=" + encodeURIComponent(token) + '&cols=' + term.cols + '&rows=' + term.rows); 
+        var ws = new WebSocket("ws://127.0.0.1:8221/ssh/connect?token=" + encodeURIComponent(token) + '&cols=' + term.cols + '&rows=' + term.rows); 
         //申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
         ws.onopen = function () {
             //当WebSocket创建成功时，触发onopen事件

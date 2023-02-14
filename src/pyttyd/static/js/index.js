@@ -116,13 +116,13 @@ $(function () {
                                         <button type="button" class="btn conn btn-sm">
                                             <span class="glyphicon glyphicon-grain"></span><span>` + item.ellipsis + `</span>
                                         </button>
-                                        <button type="button" class="btn btn-default btn-sm edit" data-toggle="modal" data-toggle="tooltip" data-target="#edit" data-placement="top" title="编辑">
+                                        <button type="button" class="btn btn-default btn-sm edit hide" data-toggle="modal" data-toggle="tooltip" data-target="#edit" data-placement="top" title="编辑">
                                             <span class="glyphicon glyphicon-edit"></span>
                                         </button>
-                                        <button type="button" class="btn btn-default btn-sm csl" data-toggle="tooltip" data-placement="top" title="连接">
+                                        <button type="button" class="btn btn-default btn-sm csl hide" data-toggle="tooltip" data-placement="top" title="连接">
                                             <span class="glyphicon glyphicon-console"></span>
                                         </button>
-                                        <button type="button" class="btn btn-default btn-sm trash" data-toggle="tooltip" data-placement="top" title="删除">
+                                        <button type="button" class="btn btn-default btn-sm trash hide" data-toggle="tooltip" data-placement="top" title="删除">
                                             <span class="glyphicon glyphicon-trash"></span>
                                         </button>
                                     </div>
