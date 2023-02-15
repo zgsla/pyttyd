@@ -2,4 +2,4 @@ include LICENSE
 include README.md
 
 recursive-include src/pyttyd/static *
-recursive-include src/pyttyd/templates *
+recursive-include src/pyttyd/template *
