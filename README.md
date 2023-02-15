@@ -42,5 +42,6 @@ root@a7272ab29048:~#
 [@Jinja2](https://github.com/pallets/jinja)  
 [@cryptography](https://github.com/pyca/cryptography)  
 [@JSEncrypt](https://github.com/travist/jsencrypt)  
-[@crypto-js](https://github.com/brix/crypto-js)
-
+[@crypto-js](https://github.com/brix/crypto-js)  
+[@xterm.js](https://github.com/xtermjs/xterm.js)  
+[@websockets](https://github.com/aaugustin/websockets)  
