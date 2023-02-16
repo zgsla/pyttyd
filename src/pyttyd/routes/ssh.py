@@ -23,18 +23,18 @@ async def ssh(q: str = None, cryptor: CryptoDepend = Depends(CryptoDepend)):
     if cryptor.token:
         ssh_id = cryptor.decrypt(cryptor.token)
         data = crud.get_conn(ssh_id, q=q)
-        data = to_dict(data)
-        data['ellipsis'] = _ellipsis(data['name'])
+        dct = to_dict(*data)
+        dct['ellipsis'] = _ellipsis(dct['name'])
 
     else:
         data = crud.get_conns(q=q)
-        data = [to_dict(row) for row in data]
+        dct = [to_dict(data[0], vs) for vs in data[1]]
 
-        for i in data:
+        for i in dct:
             i['ellipsis'] = _ellipsis(i['name'])
 
     return {
-        'data': cryptor.encrypt(json.dumps(data).encode())
+        'data': cryptor.encrypt(json.dumps(dct).encode())
     }
 
 
