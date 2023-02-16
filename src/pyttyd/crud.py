@@ -20,7 +20,7 @@ def get_conn(ssh_id: str, q=None):
             )
         res = conn.execute(stmt)
         data = res.fetchone()
-    return data
+    return ('id', 'name', 'host', 'port', 'user', 'password', 'create_time', 'update_time'), data
 
 
 def get_conns(q=None):
@@ -36,7 +36,7 @@ def get_conns(q=None):
             )
         res = conn.execute(stmt)
         data = res.fetchall()
-    return data
+    return ('id', 'name', 'host', 'port', 'user', 'password', 'create_time', 'update_time'), data
 
 
 def create_conn(item):
