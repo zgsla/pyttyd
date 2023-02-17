@@ -19,8 +19,8 @@ def get_conn(ssh_id: str, q=None):
                 )
             )
         res = conn.execute(stmt)
-        data = res.fetchone()
-    return ('id', 'name', 'host', 'port', 'user', 'password', 'create_time', 'update_time'), data
+        data = res.mappings().fetchone()
+    return data
 
 
 def get_conns(q=None):
@@ -35,8 +35,8 @@ def get_conns(q=None):
                 )
             )
         res = conn.execute(stmt)
-        data = res.fetchall()
-    return ('id', 'name', 'host', 'port', 'user', 'password', 'create_time', 'update_time'), data
+        data = res.mappings().fetchall()
+    return data
 
 
 def create_conn(item):
@@ -52,6 +52,7 @@ def create_conn(item):
             )
         )
         lastrowid = result.lastrowid
+        conn.commit()
     return lastrowid
 
 
@@ -65,9 +66,11 @@ def update_conn(item):
             password=item['password']
         ))
         rowcount = result.rowcount
+        conn.commit()
     return rowcount
 
 
 def delete_conn(item):
     with engine.connect() as conn:
         conn.execute(delete(tb_ssh_connect).where(tb_ssh_connect.c.id == item['id']))
+        conn.commit()

@@ -22,19 +22,19 @@ def _ellipsis(name):
 async def ssh(q: str = None, cryptor: CryptoDepend = Depends(CryptoDepend)):
     if cryptor.token:
         ssh_id = cryptor.decrypt(cryptor.token)
-        data = crud.get_conn(ssh_id, q=q)
-        dct = to_dict(*data)
-        dct['ellipsis'] = _ellipsis(dct['name'])
+        dct = crud.get_conn(ssh_id, q=q)
+        data = to_dict(dct)
+        data['ellipsis'] = _ellipsis(data['name'])
 
     else:
-        data = crud.get_conns(q=q)
-        dct = [to_dict(data[0], vs) for vs in data[1]]
+        lst = crud.get_conns(q=q)
+        data = [to_dict(row) for row in lst]
 
-        for i in dct:
-            i['ellipsis'] = _ellipsis(i['name'])
+        for dct in data:
+            dct['ellipsis'] = _ellipsis(dct['name'])
 
     return {
-        'data': cryptor.encrypt(json.dumps(dct).encode())
+        'data': cryptor.encrypt(json.dumps(data).encode())
     }
 
 
