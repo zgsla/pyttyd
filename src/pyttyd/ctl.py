@@ -6,8 +6,22 @@ import argparse
 
 import paramiko
 
-from pyttyd.crud import get_conns, get_conn
+from pyttyd.crud import get_conns, get_conn, create_conn
 from pyttyd.common import encodingmap, default_encoding
+
+
+def win_getwch():
+    import msvcrt
+    return msvcrt.getwch()
+
+
+def posix_getwch():
+    return sys.stdin.read(1)
+
+if os.name == 'nt':
+    getwch = win_getwch
+elif os.name == 'posix':
+    getwch = posix_getwch
 
 
 class Table:
@@ -86,17 +100,12 @@ class Terminal(paramiko.SSHClient):
             sys.stdout.write(s)
             sys.stdout.flush()
 
-    @staticmethod
-    def getwch():
-        if os.name == 'nt':
-            import msvcrt
-            return msvcrt.getwch()
 
     async def read_sock(self, chan):
         spec = 0
         while not chan.closed:
             # s = sys.stdin.readline()
-            s = await asyncio.to_thread(self.getwch)
+            s = await asyncio.to_thread(getwch)
             # s = msvcrt.getwch()
             if s == '\x00':
                 if spec != 1:
@@ -123,25 +132,54 @@ def list_conn(args):
     table.show()
 
 
+def new_conn(args):
+
+    item = {}
+    item['name'] = ('连接名称', args.name)
+    item['host'] = ('主机', args.host)
+    item['port'] = ('端口', args.port)
+    item['user'] = ('用户名', args.user)
+    item['password'] = ('密码', args.password)
+    for k, v in item.items():
+        if v[1] is None:
+            item[k] = input(f'请输入{v[0]}: \n')
+    print('id: ', create_conn(item))
+
+
 async def conn_to(args):
     c = get_conn(args.id)
     size = os.get_terminal_size()
+    os.system('stty -echo')
     with Terminal(c, size.lines, size.columns) as term:
         await term.join()
-
+    os.system('stty echo')
 
 def ctl():
     parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--version', dest='show_v', action='store_true', help='查看版本')
     root_sub = parser.add_subparsers()
     list_parser = root_sub.add_parser(name='list', help='查看已有连接列表')
     list_parser.set_defaults(func=list_conn)
     list_parser.add_argument('-q', dest='q', required=False, help='查询关键字')
 
-    conn_parse = root_sub.add_parser(name='conn')
+    new_parse = root_sub.add_parser(name='new', help='新建连接保存')
+    new_parse.set_defaults(func=new_conn)
+    new_parse.add_argument('--name', dest='name', required=False, help='连接名称')
+    new_parse.add_argument('--host', dest='host', required=False, help='主机', )
+    new_parse.add_argument('--port', dest='port', required=False, help='端口')
+    new_parse.add_argument('--user', dest='user', required=False, help='用户名')
+    new_parse.add_argument('--pass', dest='password', required=False, help='密码')
+
+    conn_parse = root_sub.add_parser(name='conn', help='根据id连接建立ssh连接')
     conn_parse.set_defaults(func=conn_to)
     conn_parse.add_argument('id', help='连接id')
     args = parser.parse_args()
-    if asyncio.iscoroutinefunction(args.func):
-        asyncio.run(args.func(args))
+    if args.show_v:
+        print('1.0.6')
+    elif 'func' in args:
+        if asyncio.iscoroutinefunction(args.func):
+            asyncio.run(args.func(args))
+        else:
+            args.func(args)
     else:
-        args.func(args)
+        parser.print_help()

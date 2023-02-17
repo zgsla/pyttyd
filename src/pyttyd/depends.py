@@ -49,11 +49,11 @@ class CryptoDepend:
         return self._cryptor.encrypt(src)
 
 
-def to_dict(keys, values):
+def to_dict(row):
     dct = {}
-    for i, k in enumerate(keys):
-        if isinstance(values[i], datetime.datetime):
-            dct[k] = values[i].strftime('%Y-%m-%d %H:%M:%S')
+    for k, v in row.items():
+        if isinstance(v, datetime.datetime):
+            dct[k] = v.strftime('%Y-%m-%d %H:%M:%S')
         else:
-            dct[k] = values[i]
+            dct[k] = v
     return dct

@@ -8,7 +8,7 @@ from pyttyd.ctl import ctl
 def main():
     uvicorn.run(
         'pyttyd.app:app',
-        reload=False,
+        reload=True,
         # reload_dirs=__basepath__,
         port=8221
         # ssl_keyfile=os.path.join(__basepath__, 'ca-key.pem'),
