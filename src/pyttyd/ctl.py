@@ -10,20 +10,6 @@ from pyttyd.crud import get_conns, get_conn, create_conn
 from pyttyd.common import encodingmap, default_encoding
 
 
-def win_getwch():
-    import msvcrt
-    return msvcrt.getwch()
-
-
-def posix_getwch():
-    return sys.stdin.read(1)
-
-if os.name == 'nt':
-    getwch = win_getwch
-elif os.name == 'posix':
-    getwch = posix_getwch
-
-
 class Table:
 
     def __init__(self, conns):
@@ -100,30 +86,54 @@ class Terminal(paramiko.SSHClient):
             sys.stdout.write(s)
             sys.stdout.flush()
 
+    async def win_read(self, chan):
+        import msvcrt
 
-    async def read_sock(self, chan):
         spec = 0
         while not chan.closed:
             # s = sys.stdin.readline()
-            s = await asyncio.to_thread(getwch)
-            # s = msvcrt.getwch()
-            if s == '\x00':
-                if spec != 1:
-                    spec = 1
-            elif spec == 1:
-                if s == 'H':  # 上
-                    chan.send('\x1b[A')
-                elif s == 'K':  # 左
-                    chan.send('\x1b[D')
-                elif s == 'M':  # 右
-                    chan.send('\x1b[C')
-                elif s == 'P':  # 下
-                    chan.send('\x1b[B')
-                else:
-                    chan.send(s)
-                spec = 0
-            else:
+            s = await asyncio.to_thread(msvcrt.getwch)
+            chan.send(s.encode(self._encoding))
+            # # s = msvcrt.getwch()
+            # if s == '\x00' or s == '\xe0':
+            #     if spec != 1:
+            #         spec = 1
+            # elif spec == 1:
+            #     if s == 'H':  # 上
+            #         chan.send('\x1b[A')
+            #     elif s == 'K':  # 左
+            #         chan.send('\x1b[D')
+            #     elif s == 'M':  # 右
+            #         chan.send('\x1b[C')
+            #     elif s == 'P':  # 下
+            #         chan.send('\x1b[B')
+            #     else:
+            #         chan.send(s)
+            #     spec = 0
+            # else:
+            #     chan.send(s.encode(self._encoding))
+
+    async def posix_read(self, chan):
+        import termios
+        fd = sys.stdin.fileno()
+        old = termios.tcgetattr(fd)
+        new = old[:]
+        new[3] &= ~termios.ECHO & ~termios.ICANON & ~termios.ISIG
+        try:
+            termios.tcsetattr(fd, termios.TCSADRAIN, new)
+            while not chan.closed:
+                s = await asyncio.to_thread(sys.stdin.read, 1)
                 chan.send(s.encode(self._encoding))
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+    async def read_sock(self, chan):
+        if os.name == 'nt':
+            await self.win_read(chan)
+        elif os.name == 'posix':
+            await self.posix_read(chan)
+        else:
+            raise Exception('不支持的系统: ', os.name)
 
 
 def list_conn(args):
@@ -134,25 +144,25 @@ def list_conn(args):
 
 def new_conn(args):
 
-    item = {}
-    item['name'] = ('连接名称', args.name)
-    item['host'] = ('主机', args.host)
-    item['port'] = ('端口', args.port)
-    item['user'] = ('用户名', args.user)
-    item['password'] = ('密码', args.password)
+    item = {
+        'name': ('连接名称', args.name),
+        'host': ('主机', args.host),
+        'port': ('端口', args.port),
+        'user': ('用户名', args.user),
+        'password': ('密码', args.password)
+    }
     for k, v in item.items():
         if v[1] is None:
             item[k] = input(f'请输入{v[0]}: \n')
-    print('id: ', create_conn(item))
+    # print('id: ', create_conn(item))
 
 
 async def conn_to(args):
     c = get_conn(args.id)
     size = os.get_terminal_size()
-    os.system('stty -echo')
     with Terminal(c, size.lines, size.columns) as term:
         await term.join()
-    os.system('stty echo')
+
 
 def ctl():
     parser = argparse.ArgumentParser()

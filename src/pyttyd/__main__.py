@@ -2,7 +2,7 @@ import os
 
 import uvicorn
 from pyttyd import __basepath__
-from pyttyd.ctl import ctl
+# from pyttyd.ctl import ctl
 
 
 def main():
