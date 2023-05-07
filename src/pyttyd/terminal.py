@@ -41,7 +41,10 @@ class Terminal(paramiko.SSHClient):
     async def read_chan(self, chan):
         while not chan.closed:
             try:
-                data = await asyncio.to_thread(chan.recv, 1024)
+                if hasattr(asyncio, 'to_thread'):
+                    data = await asyncio.to_thread(chan.recv, 1024)
+                else:
+                    data = await asyncio.get_running_loop().run_in_executor(None, chan.recv, 1024)
                 # print('chan.recv: ', data)
             except Exception as e:
                 logging.error('chan.recv error', exc_info=e)
