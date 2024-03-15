@@ -35,3 +35,14 @@ async def ssh(request: Request):
             'publickey': publickey
         }
     )
+
+
+@router.get("/tty", response_class=HTMLResponse)
+async def ssh(request: Request):
+    return template.TemplateResponse(
+        "tty.html",
+        context={
+            'request': request,
+            'publickey': publickey
+        }
+    )

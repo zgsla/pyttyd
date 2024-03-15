@@ -4,7 +4,8 @@ from fastapi.staticfiles import StaticFiles
 from pyttyd import __static__, routes
 
 app = FastAPI(routes=[
-    routes.terminal.router
+    routes.terminal.router,
+    routes.tty.router
 ])
 
 app.mount("/static", StaticFiles(directory=__static__), name="static")

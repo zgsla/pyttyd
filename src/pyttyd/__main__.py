@@ -10,7 +10,7 @@ def main():
         'pyttyd.app:app',
         reload=True,
         # reload_dirs=__basepath__,
-        port=8221
+        port=8223
         # ssl_keyfile=os.path.join(__basepath__, 'ca-key.pem'),
         # ssl_certfile=os.path.join(__basepath__, 'ca.crt'),
         # ssl_keyfile_password='passphrase'
