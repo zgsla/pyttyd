@@ -17,7 +17,7 @@ class TestTTY(unittest.TestCase):
 
     def test_send(self):
         self.websocket.recv(10)
-        self.websocket.send(json.dumps({'input': 'echo "hello world!"\n'}))
+        self.websocket.send(json.dumps({'input': 'echo "hello world!"\\n'}))
         time.sleep(5)
         data = self.websocket.recv(10)
         print(data)
