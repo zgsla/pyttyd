@@ -53,6 +53,7 @@ class PTY:
             stderr=tty,
             shell=True
         )
+        return self
 
     async def process(self):
         read_pty = asyncio.create_task(self.read_pty())
