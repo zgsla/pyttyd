@@ -28,7 +28,7 @@ async def websocket_endpoint(
     await websocket.accept()
     print('accepted')
     master, slave = pty.openpty()
-    process = subprocess.Popen('bash', stdin=slave, stdout=slave, stderr=slave, shell=True)
+    process = subprocess.Popen('bash', cwd='~', stdin=slave, stdout=slave, stderr=slave, shell=True)
     consumer_task = asyncio.create_task(read_chan(websocket, master))
     producer_task = asyncio.create_task(read_sock(websocket, master))
 
