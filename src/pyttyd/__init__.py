@@ -12,6 +12,7 @@ __html__ = '''
     <!DOCTYPE html>
         <html translate="no">
         <head>
+            <title>Pyttyd Terminal</title>
             <meta charset="UTF-8">
             <link rel="stylesheet" href="/static/css/xterm.css">
             <link rel="icon" href="/static/img/favicon.ico">
