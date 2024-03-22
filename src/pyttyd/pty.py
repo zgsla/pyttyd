@@ -35,7 +35,7 @@ class PTY:
                     data = await asyncio.to_thread(os.read, self.pty, 1024)
                 else:
                     data = await asyncio.get_running_loop().run_in_executor(None, os.read, self.pty, 1024)
-                # print('chan.recv: ', data)
+                print('pty.recv: ', data)
             except Exception as e:
                 logging.error('chan.recv error', exc_info=e)
                 await self.ws.close(reason=str(e))

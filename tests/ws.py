@@ -1,9 +1,13 @@
 import json
 import time
+import socket
 import unittest
 from websockets.sync.client import connect
 
-from pyttyd.__main__ import host
+try:
+    host = socket.gethostbyname(socket.gethostname())
+except:
+    host = '127.0.0.1'
 
 
 class TestTTY(unittest.TestCase):
