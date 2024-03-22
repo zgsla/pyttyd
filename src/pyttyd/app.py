@@ -19,7 +19,7 @@ async def v_index():
     return __html__
 
 
-@app.websocket("/ws")
+@app.websocket("/tty")
 async def websocket_endpoint(
         websocket: WebSocket,
         rows: int,
