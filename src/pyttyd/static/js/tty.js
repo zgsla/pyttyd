@@ -1,6 +1,3 @@
-
-import {Encryptor} from './crypt.js'
-
 // 修改terminal的高度为body的高度
 document.getElementById('terminal').style.height = (window.innerHeight * 0.999) + 'px';
 // document.getElementById('terminal').style.width = window.innerWidth + 'px';
