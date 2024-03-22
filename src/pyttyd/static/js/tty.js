@@ -27,7 +27,6 @@ var ws = new WebSocket("ws://" + window.location.host + "/tty" + '?cols=' + term
 ws.onopen = function () {
     //当WebSocket创建成功时，触发onopen事件
     console.log("open");
-    ws.send(JSON.stringify({ "input": '\n' }))
 }
 ws.onmessage = function (e) {
     //当客户端收到服务端发来的消息时，触发onmessage事件，参数e.data包含server传递过来的数据
