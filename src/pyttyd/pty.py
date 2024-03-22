@@ -55,7 +55,7 @@ class PTY:
         )
         return self
 
-    async def process(self):
+    async def run(self):
         read_pty = asyncio.create_task(self.read_pty())
         read_ws = asyncio.create_task(self.read_ws())
 

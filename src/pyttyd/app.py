@@ -24,4 +24,4 @@ async def websocket_endpoint(
     await websocket.accept()
     print('accepted')
     async with PTY(websocket) as pty:
-        await pty.process()
+        await pty.run()
