@@ -3,11 +3,13 @@ import time
 import unittest
 from websockets.sync.client import connect
 
+from pyttyd.__main__ import host
+
 
 class TestTTY(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.websocket = connect('ws://127.0.0.1:8221/tty?rows=100&cols=100')
+        self.websocket = connect('ws://' + host + ':8221/tty?rows=100&cols=100')
 
     def test_send(self):
         self.websocket.recv(10)
