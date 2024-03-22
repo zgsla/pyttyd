@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
 from pyttyd import __static__, __html__
-from terminal import read_sock, read_chan
+from pyttyd.terminal import read_sock, read_chan
 
 app = FastAPI()
 
