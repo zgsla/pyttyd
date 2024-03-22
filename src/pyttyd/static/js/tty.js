@@ -6,10 +6,7 @@ document.getElementById('terminal').style.height = (window.innerHeight * 0.999) 
 const term = new Terminal({
     cursorStyle: 'underline',  //光标样式
     cursorBlink: true,  //光标闪烁
-    windowsMode: true,
-    windowsPty: {
-        backend: 'conpty'
-    },
+
     convertEol: true
 
 });
@@ -43,8 +40,9 @@ ws.onerror = function (e) {
 }
 
 term.onData(function (s) {
-    console.log(s)
-    ws.send(JSON.stringify({ "input": s }))
+    data = JSON.stringify({input: s})
+    console.log(data)
+    ws.send(data)
 });
 
 window.onresize = function () {
