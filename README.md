@@ -13,8 +13,12 @@ $ pip install pyttyd
 $ pyttyd
 ```
 
-浏览器访问 [http://127.0.0.1:8221](http://127.0.0.1:8221)
+### 支持的平台
+✅ linux
 
+### 仓库
+[github](https://github.com/zhanglaiya/pyttyd)  
+[码云](https://gitee.com/zhanglaiya/pyttyd)
 
 ### 说明
 [xterm.js](https://github.com/xtermjs/xterm.js)制作终端效果展示  
