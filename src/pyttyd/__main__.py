@@ -1,10 +1,16 @@
+import socket
 import uvicorn
 
 
-def main(**kwargs):
-    if kwargs.get('port') is None:
-        kwargs['port'] = 19310
+try:
+    host = socket.gethostbyname(socket.gethostname())
+except:
+    host = '127.0.0.1'
+
+
+def main():
     uvicorn.run(
         'pyttyd.app:app',
-        **kwargs
+        host=host,
+        port=8221
     )

@@ -1,7 +1,7 @@
 import os
 
 
-__version__ = '1.0.8'
+__version__ = '1.1.1'
 
 __basepath__ = os.path.dirname(os.path.abspath(__file__))
 
